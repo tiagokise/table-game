@@ -25,6 +25,7 @@ export default function Home() {
       ...prevState,
       isQuizVisible: true,
       currentQuestion: randomQuestion,
+      score: prevState.score,
     }));
   };
 
@@ -34,6 +35,7 @@ export default function Home() {
 
       if (isCorrect) {
         const newPosition = prevState.playerPosition + diceRoll;
+        const newScore = prevState.score + diceRoll;
         if (newPosition >= WINNING_POSITION) {
           setWinner(true);
           return {
@@ -41,6 +43,7 @@ export default function Home() {
             isQuizVisible: false,
             currentQuestion: null,
             playerPosition: WINNING_POSITION,
+            score: newScore,
           };
         }
         return {
@@ -48,15 +51,17 @@ export default function Home() {
           isQuizVisible: false,
           currentQuestion: null,
           playerPosition: newPosition,
+          score: newScore,
         };
       } else {
-        // Move back by the dice roll amount, not going below 0
         const newPosition = Math.max(0, prevState.playerPosition - diceRoll);
+        const newScore = prevState.score - diceRoll;
         return {
           ...prevState,
           isQuizVisible: false,
           currentQuestion: null,
           playerPosition: newPosition,
+          score: newScore,
         };
       }
     });
@@ -72,11 +77,15 @@ export default function Home() {
   return (
     <main>
       <h1>Table Game</h1>
+      <h2>Score: {gameState.score}</h2>
       <button onClick={resetGame} className="restart-button">
         Restart Game
       </button>
       <Board>
-        <Player position={gameState.playerPosition} />
+        <>
+          <Dice onRoll={handleRoll} disabled={gameState.isQuizVisible} currentRoll={diceRoll} />
+          <Player position={gameState.playerPosition} />
+        </>
       </Board>
       {winner ? (
         <div>
@@ -85,7 +94,6 @@ export default function Home() {
         </div>
       ) : (
         <>
-          <Dice onRoll={handleRoll} />
           {gameState.isQuizVisible && gameState.currentQuestion && (
             <Quiz question={gameState.currentQuestion} onAnswer={handleAnswer} />
           )}

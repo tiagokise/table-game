@@ -10,4 +10,5 @@ export interface GameState {
   playerPosition: number;
   isQuizVisible: boolean;
   currentQuestion: Question | null;
+  score: number;
 }
