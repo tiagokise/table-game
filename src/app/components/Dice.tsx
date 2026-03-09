@@ -15,7 +15,7 @@ export default function Dice({ onRoll, disabled, currentRoll }: DiceProps) {
   return (
     <button onClick={rollDice} className="dice" disabled={disabled}>
       {currentRoll === null ? (
-        'Roll Dice'
+        'Rolar o Dado'
       ) : (
         <img src={`/dice-${currentRoll}.png`} alt={`Dice roll: ${currentRoll}`} className="dice-image" />
       )}

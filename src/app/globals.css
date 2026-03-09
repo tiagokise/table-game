@@ -45,7 +45,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100vw;
+  /* width: 100vw; */
   height: auto;
   /* padding: 20px; */
 }
@@ -55,7 +55,10 @@ body {
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   width: 78vmin;
-  height: 78vmin;
+  height: auto;
+  max-width: 90vw;
+  max-height: 70vh;
+  aspect-ratio: 1;
   border: 2px solid black;
   position: relative;
   background-color: #f0f0f0;
@@ -83,7 +86,7 @@ body {
   transition: all 0.3s ease;
   /* border: 2px solid ; */
   overflow: hidden;
-  background-color: white;
+  /* background-color: white; */
 }
 
 .player img {

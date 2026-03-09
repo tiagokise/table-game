@@ -1,12 +1,13 @@
 // components/Player.tsx
 import React from 'react';
 import Image from 'next/image';
+import { Player } from '../game/types';
 
 interface PlayerProps {
-  position: number;
+  player: Player;
 }
 
-const Player = ({ position }: PlayerProps) => {
+const PlayerComponent = ({ player }: PlayerProps) => {
   const getPlayerPosition = (pos: number) => {
     let row = 1;
     let col = 1;
@@ -39,10 +40,18 @@ const Player = ({ position }: PlayerProps) => {
   };
 
   return (
-    <div className="player" style={getPlayerPosition(position)}>
-      <Image src="/aliens-1300-svgrepo-com.png" alt="Player" layout="fill" objectFit="contain" />
+    <div
+      className={`player ${player.color}`}
+      style={{ ...getPlayerPosition(player.position), backgroundColor: player.color }}
+    >
+      <Image
+        src="/aliens-1300-svgrepo-com.png"
+        alt="Player"
+        layout="fill"
+        objectFit="contain"
+      />
     </div>
   );
 };
 
-export default Player;
+export default PlayerComponent;

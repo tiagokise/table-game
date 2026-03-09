@@ -6,9 +6,16 @@ export interface Question {
   answer: string;
 }
 
+export interface Player {
+  id: number;
+  position: number;
+  score: number;
+  color: string;
+}
+
 export interface GameState {
-  playerPosition: number;
+  players: Player[];
+  currentPlayerIndex: number;
   isQuizVisible: boolean;
   currentQuestion: Question | null;
-  score: number;
 }
