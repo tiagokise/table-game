@@ -29,7 +29,7 @@ const Board = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="board-container">
-      <div className="board">
+      <div className="board" style={{ backgroundImage: 'url("/bg-table-board.png")', backgroundSize: 'cover' }}>
         {perimeterCells.map(({ path, row, col }) => (
           <div
             key={path}
@@ -43,7 +43,7 @@ const Board = ({ children }: { children: React.ReactNode }) => {
           className="center-image-container"
           style={{ gridRow: '2 / 10', gridColumn: '2 / 10' }}
         >
-          <img src="/globe.svg" alt="Center Image" />
+          {/* <img src="/globe.svg" alt="Center Image" /> */}
         </div>
         {children}
       </div>

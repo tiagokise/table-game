@@ -116,7 +116,7 @@ export default function Home() {
       </button>
       <Board>
         <>
-          <Dice onRoll={handleRoll} disabled={gameState.isQuizVisible} currentRoll={diceRoll} />
+          <Dice onRoll={handleRoll} disabled={gameState.isQuizVisible} currentRoll={diceRoll} currentPlayer={currentPlayer} />
           {gameState.players.map((player) => (
             <PlayerComponent key={player.id} player={player} />
           ))}

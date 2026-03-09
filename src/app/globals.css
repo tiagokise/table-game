@@ -47,7 +47,7 @@ body {
   align-items: center;
   /* width: 100vw; */
   height: auto;
-  /* padding: 20px; */
+  padding: 80px 40px;
 }
 
 .board {
@@ -61,7 +61,7 @@ body {
   aspect-ratio: 1;
   border: 2px solid black;
   position: relative;
-  background-color: #f0f0f0;
+  /* background-color: #f0f0f0; */
 }
 
 .cell {
@@ -69,11 +69,14 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.5vmin;
+  font-weight: bolder;
+  font-size: 1em;
+  color: #f0f0f0;
+  text-shadow: 1px 1px 2px black;
 }
 
 .cell.even {
-  background-color: #d3d3d3;
+  /* background-color: #d3d3d3; */
 }
 
 .player {
@@ -127,8 +130,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #e0e0e0;
-  border: 2px solid #ccc;
+  /* background-color: #e0e0e0; */
+  border: 1px solid #ccc;
 }
 
 .center-image-container img {
@@ -139,7 +142,7 @@ body {
 
 .dice {
   position: absolute;
-  top: 60%;
+  top: -30px;
   left: 50%;
   transform: translate(-50%, -50%);
   /* margin: 20px; */
@@ -161,14 +164,17 @@ body {
   padding: 10px 20px;
   font-size: 1rem;
   cursor: pointer;
-  background-color: #dc3545;
-  color: white;
+  background-color: #dcd435;
+  /* color: white; */
   border: none;
   border-radius: 5px;
+  position: absolute;
+  bottom: 10px;
+  right: 10px
 }
 
 .restart-button:hover {
-  background-color: #c82333;
+  background-color: #afc823;
 }
 
 .dice-image {
