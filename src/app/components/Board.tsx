@@ -1,7 +1,12 @@
 // components/Board.tsx
 import React from 'react';
 
-const Board = ({ children }: { children: React.ReactNode }) => {
+interface BoardProps {
+  children: React.ReactNode;
+}
+
+const Board = ({ children }: BoardProps) => {
+
   const getPerimeterCells = () => {
     const cells = [];
     let pathIndex = 1;
@@ -26,6 +31,17 @@ const Board = ({ children }: { children: React.ReactNode }) => {
   };
 
   const perimeterCells = getPerimeterCells();
+  
+  // Separate players from other children (like the Dice)
+  const players: React.ReactNode[] = [];
+  const otherChildren: React.ReactNode[] = [];
+  React.Children.forEach(children, (child) => {
+    if (React.isValidElement(child) && (child.type as any).name === 'PlayerComponent') {
+      players.push(child);
+    } else {
+      otherChildren.push(child);
+    }
+  });
 
   return (
     <div className="board-container">
@@ -40,12 +56,12 @@ const Board = ({ children }: { children: React.ReactNode }) => {
           </div>
         ))}
         <div
-          className="center-image-container"
+          className="center-content-container"
           style={{ gridRow: '2 / 10', gridColumn: '2 / 10' }}
         >
-          {/* <img src="/globe.svg" alt="Center Image" /> */}
+          {otherChildren}
         </div>
-        {children}
+        {players}
       </div>
     </div>
   );

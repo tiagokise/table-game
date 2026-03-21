@@ -8,4 +8,5 @@ export const initialGameState: GameState = {
   currentPlayerIndex: 0,
   isQuizVisible: false,
   currentQuestion: null,
+  diceValue: null,
 };

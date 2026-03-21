@@ -23,45 +23,77 @@
 }
 
 body {
-  /* color: rgb(var(--foreground-rgb)); */
-  /* background: linear-gradient(to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb)); */
   padding: 20px;
-  text-align: center;
   font-family: Arial, sans-serif;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  background-color: #f0f2f5;
+  color: #333;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+main.game-container {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 40px);
+  align-items: center;
 }
+
+.game-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 280px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: left;
+  height: 100%;
+}
+
+.game-sidebar h2, .game-sidebar h3 {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.game-sidebar ul {
+  list-style: none;
+}
+
+.game-sidebar .turn-indicator {
+  padding: 12px;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.game-sidebar .scores-list li {
+  margin-bottom: 8px;
+  font-size: 1.1em;
+}
+
 
 .board-container {
+  flex-grow: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  /* width: 100vw; */
-  height: auto;
-  padding: 80px 40px;
+  height: 100%;
 }
 
 .board {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
-  width: 78vmin;
-  height: auto;
-  max-width: 90vw;
-  max-height: 70vh;
+  width: auto;
+  height: 100%;
+  max-width: 90vh;
   aspect-ratio: 1;
   border: 2px solid black;
   position: relative;
-  /* background-color: #f0f0f0; */
 }
 
 .cell {
@@ -75,21 +107,15 @@ body {
   text-shadow: 1px 1px 2px black;
 }
 
-.cell.even {
-  /* background-color: #d3d3d3; */
-}
-
 .player {
-  width: 8vmin;
-  height: 8vmin;
+  width: 4vmin;
+  height: 4vmin;
   display: flex;
   justify-content: center;
   align-items: center;
   position: absolute;
   transition: all 0.3s ease;
-  /* border: 2px solid ; */
   overflow: hidden;
-  /* background-color: white; */
 }
 
 .player img {
@@ -98,54 +124,64 @@ body {
   object-fit: contain;
 }
 
+/* Quiz Modal */
+.quiz-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
 .quiz {
-  position: absolute;
-  top: 42%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   background-color: white;
-  padding: 20px;
+  padding: 30px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  z-index: 10;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
   color: black;
+}
+
+.quiz h2 {
+  margin-bottom: 20px;
 }
 
 .options button {
   display: block;
   width: 100%;
-  margin: 5px 0;
-  padding: 10px;
+  margin: 10px 0;
+  padding: 12px;
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: #f0f0f0;
   cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s;
 }
 
 .options button:hover {
-  background-color: #d3d3d3;
+  background-color: #e0e0e0;
 }
 
-.center-image-container {
+.center-content-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* background-color: #e0e0e0; */
   border: 1px solid #ccc;
-}
-
-.center-image-container img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+  position: relative;
 }
 
 .dice {
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  /* margin: 20px; */
+  position: static;
+  transform: none;
+  margin-bottom: 20px; /* Add some space between dice and other center elements if any */
   padding: 10px 20px;
   font-size: 1.2rem;
   cursor: pointer;
@@ -153,32 +189,137 @@ body {
   color: white;
   border: none;
   border-radius: 5px;
+  min-width: 150px;
 }
 
-.dice:hover {
+.dice:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+.dice:hover:not(:disabled) {
   background-color: #0056b3;
 }
 
 .restart-button {
-  margin: 10px;
-  padding: 10px 20px;
-  font-size: 1rem;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 20px;
+  font-size: 1.1rem;
   cursor: pointer;
   background-color: #dcd435;
-  /* color: white; */
   border: none;
   border-radius: 5px;
-  position: absolute;
-  bottom: 10px;
-  right: 10px
 }
 
 .restart-button:hover {
-  background-color: #afc823;
+  background-color: #c8bf2d;
 }
 
 .dice-image {
-  width: 100%;
-  height: 10vmin;
+  width: 50px;
+  height: 50px;
   object-fit: contain;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+/* Room Selection */
+.room-selection {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  gap: 15px;
+}
+
+.room-selection input {
+  padding: 12px;
+  font-size: 1em;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 300px;
+  max-width: 80%;
+}
+
+.room-selection button {
+  padding: 12px 25px;
+  font-size: 1em;
+  border-radius: 5px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.pdf-uploader {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.pdf-uploader input {
+  display: block;
+  margin: 10px 0;
+}
+
+.pdf-uploader button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+}
+
+.pdf-uploader button:disabled {
+  background-color: #a0a0a0;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+    height: auto;
+    overflow: visible; /* Allow scrolling on mobile */
+  }
+
+  main.game-container {
+    flex-direction: column;
+    height: auto;
+    gap: 10px;
+  }
+
+  .game-sidebar {
+    width: 100%;
+    height: auto;
+    order: 1; /* Display sidebar first */
+  }
+
+  .board-container {
+    width: 100%;
+    order: 2; /* Display board second */
+    padding: 0;
+  }
+
+  .board {
+    width: 95vw;
+    height: 95vw;
+    max-width: none;
+    max-height: none;
+  }
+
+  .player {
+    width: 8vw;
+    height: 8vw;
+  }
+
+  .dice {
+    font-size: 1rem;
+    min-width: 120px;
+  }
 }
