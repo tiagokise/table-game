@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import Pusher from 'pusher';
 import { GameState } from '@/app/game/types';
 import { initialGameState } from '@/app/game/game-state';
+import redis from '@/lib/redis';
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -12,13 +13,14 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-const rooms = new Map<string, GameState>();
-
-function getRoom(roomName: string): GameState {
-  if (!rooms.has(roomName)) {
-    rooms.set(roomName, JSON.parse(JSON.stringify(initialGameState)));
+async function getRoom(roomName: string): Promise<GameState> {
+  const roomData = await redis.get(`room:${roomName}`);
+  if (roomData) {
+    return JSON.parse(roomData);
   }
-  return rooms.get(roomName)!;
+  const newRoom = JSON.parse(JSON.stringify(initialGameState));
+  await redis.set(`room:${roomName}`, JSON.stringify(newRoom));
+  return newRoom;
 }
 
 export async function POST(request: Request) {
@@ -28,10 +30,10 @@ export async function POST(request: Request) {
   const userId = Math.random().toString(36).substring(2, 9);
 
   const roomName = channel.replace('presence-game-', '');
-  const gameState = getRoom(roomName);
+  const gameState = await getRoom(roomName);
 
   const playerColor = ['red', 'blue', 'green', 'yellow'][gameState.players.length % 4];
-  if (gameState.players.length < 4) {
+  if (gameState.players.length < 4 && !gameState.players.some(p => p.id === userId)) {
     gameState.players.push({ id: userId, position: 0, score: 0, color: playerColor });
   }
 
@@ -42,7 +44,7 @@ export async function POST(request: Request) {
 
   const authResponse = pusher.authorizeChannel(socketId, channel, userInfo);
   
-  // Trigger an event to update everyone
+  await redis.set(`room:${roomName}`, JSON.stringify(gameState));
   await pusher.trigger(channel, 'gameState', gameState);
 
   return new Response(JSON.stringify(authResponse));

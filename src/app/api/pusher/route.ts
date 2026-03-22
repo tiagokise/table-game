@@ -1,8 +1,9 @@
 // src/app/api/pusher/route.ts
 import { NextResponse } from 'next/server';
 import Pusher from 'pusher';
-import { initialGameState } from '@/app/game/game-state';
 import { GameState } from '@/app/game/types';
+import redis from '@/lib/redis';
+import { initialGameState } from '@/app/game/game-state';
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -12,20 +13,20 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-const rooms = new Map<string, GameState>();
 const WINNING_POSITION = 35;
 
-function getRoom(roomName: string): GameState {
-  if (!rooms.has(roomName)) {
-    rooms.set(roomName, JSON.parse(JSON.stringify(initialGameState)));
+async function getRoom(roomName: string): Promise<GameState> {
+  const roomData = await redis.get(`room:${roomName}`);
+  if (roomData) {
+    return JSON.parse(roomData);
   }
-  return rooms.get(roomName)!;
+  return JSON.parse(JSON.stringify(initialGameState));
 }
 
 export async function POST(request: Request) {
   const { event, channel, payload, userId } = await request.json();
   const roomName = channel.replace('presence-game-', '');
-  const gameState = getRoom(roomName);
+  const gameState = await getRoom(roomName);
   const currentPlayer = gameState.players[gameState.currentPlayerIndex];
 
   switch (event) {
@@ -64,12 +65,13 @@ export async function POST(request: Request) {
         ...p,
         position: 0,
         score: 0,
-        id: index + 1, // Re-assign IDs to be safe
       }));
-      rooms.set(roomName, newGameState);
-      break;
+      await redis.set(`room:${roomName}`, JSON.stringify(newGameState));
+      await pusher.trigger(channel, 'gameState', newGameState);
+      return NextResponse.json({ success: true });
   }
 
-  await pusher.trigger(channel, 'gameState', rooms.get(roomName));
+  await redis.set(`room:${roomName}`, JSON.stringify(gameState));
+  await pusher.trigger(channel, 'gameState', gameState);
   return NextResponse.json({ success: true });
 }
