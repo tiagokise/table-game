@@ -13,8 +13,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 interface PdfUploaderProps {
   onQuestionsExtracted: (questions: Question[]) => void;
-  currentPlayerId: number;
-  playerId: number;
+  currentPlayerId: string | null;
+  playerId: string | null;
   questionsLoaded: boolean;
 }
 

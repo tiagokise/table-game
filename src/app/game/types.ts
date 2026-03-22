@@ -7,7 +7,7 @@ export interface Question {
 }
 
 export interface Player {
-  id: number;
+  id: string;
   position: number;
   score: number;
   color: string;
@@ -19,5 +19,5 @@ export interface GameState {
   isQuizVisible: boolean;
   currentQuestion: Question | null;
   diceValue: number | null;
-  lastAnswerResult: { playerId: number; isCorrect: boolean } | null;
+  lastAnswerResult: { playerId: string; isCorrect: boolean } | null;
 }

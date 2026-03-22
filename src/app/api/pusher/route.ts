@@ -1,8 +1,8 @@
 // src/app/api/pusher/route.ts
 import { NextResponse } from 'next/server';
 import Pusher from 'pusher';
-import { initialGameState } from '../../../game/game-state';
-import { GameState } from '../../../game/types';
+import { initialGameState } from '@/app/game/game-state';
+import { GameState } from '@/app/game/types';
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,

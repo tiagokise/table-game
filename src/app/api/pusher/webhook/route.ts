@@ -16,7 +16,13 @@ const pusher = new Pusher({
 const rooms = new Map<string, any>(); 
 
 export async function POST(request: Request) {
-  const webhook = pusher.webhook(request);
+  const rawBody = await request.text();
+  const headers: Record<string, string> = {};
+  request.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+
+  const webhook = pusher.webhook({ headers, rawBody });
   const events = webhook.getEvents();
 
   for (const event of events) {
@@ -26,7 +32,7 @@ export async function POST(request: Request) {
     if (!gameState) continue;
 
     if (event.name === 'member_removed') {
-      gameState.players = gameState.players.filter((p: any) => p.id !== event.user_id);
+      gameState.players = gameState.players.filter((p: any) => p.id !== (event as any).user_id);
       if (gameState.currentPlayerIndex >= gameState.players.length) {
         gameState.currentPlayerIndex = 0;
       }

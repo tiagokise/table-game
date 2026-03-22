@@ -128,8 +128,8 @@ export default function Home() {
         </button>
         <PdfUploaderDynamic
           onQuestionsExtracted={handleSetCustomQuestions}
-          currentPlayerId={currentPlayer?.id || 0}
-          playerId={playerId || 0}
+          currentPlayerId={currentPlayer?.id}
+          playerId={playerId}
           questionsLoaded={questionsLoaded}
         />
         </aside>
