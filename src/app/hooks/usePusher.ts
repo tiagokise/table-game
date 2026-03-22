@@ -13,8 +13,8 @@ const usePusher = (room: string | null) => {
     console.log("Pusher Key (from usePusher):", "cbefe2fef0f08ab319f4");
     console.log("Pusher Cluster (from usePusher):", "sa-east-1");
 
-    const newPusher = new Pusher("cbefe2fef0f08ab319f4", {
-      cluster: "sa-east-1",
+    const newPusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
       authEndpoint: '/api/pusher/auth',
       auth: {
         params: { room },
