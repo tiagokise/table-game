@@ -8,7 +8,7 @@ import Quiz from './components/Quiz';
 import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { GameState, Question } from './game/types';
-import useSocketIO from './hooks/useSocketIO';
+import usePusher from './hooks/usePusher';
 
 const Board = dynamic(() => import('./components/Board'), { ssr: false });
 const PdfUploaderDynamic = dynamic(() => import('./components/PdfUploader'), { ssr: false });
@@ -19,7 +19,7 @@ export default function Home() {
   const [room, setRoom] = useState<string | null>(null);
   const [roomInput, setRoomInput] = useState<string>('');
   const [localGameState, setLocalGameState] = useState<GameState>(initialGameState);
-  const { gameState, playerId, emit } = useSocketIO(room);
+  const { gameState, playerId, emit } = usePusher(room);
   const [winner, setWinner] = useState(false);
   const [diceRoll, setDiceRoll] = useState<number | null>(null);
   const [customQuestions, setCustomQuestions] = useState<Question[] | null>(null);
