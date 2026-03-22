@@ -192,8 +192,27 @@ main.game-container {
   min-width: 150px;
 }
 
+.show-question-button {
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  background-color: #35a1d2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  min-width: 150px;
+}
+
+.show-question-button:hover {
+  background-color: #2a8bc4;
+}
+
 .dice:disabled {
   background-color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+.dice.not-my-turn {
   cursor: not-allowed;
 }
 
@@ -278,6 +297,19 @@ main.game-container {
 
 .pdf-uploader button:disabled {
   background-color: #a0a0a0;
+}
+
+.quiz.feedback-modal {
+  background-color: #d4edda; /* Light green */
+  color: #155724; /* Dark green text */
+  border: 2px solid #c3e6cb;
+  text-align: center;
+}
+
+.quiz.feedback-modal.error {
+  background-color: #f8d7da; /* Light red */
+  color: #721c24; /* Dark red text */
+  border: 2px solid #f5c6cb;
 }
 
 /* Mobile Adjustments */

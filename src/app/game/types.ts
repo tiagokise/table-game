@@ -19,4 +19,5 @@ export interface GameState {
   isQuizVisible: boolean;
   currentQuestion: Question | null;
   diceValue: number | null;
+  lastAnswerResult: { playerId: number; isCorrect: boolean } | null;
 }

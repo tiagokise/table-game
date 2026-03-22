@@ -9,4 +9,5 @@ export const initialGameState: GameState = {
   isQuizVisible: false,
   currentQuestion: null,
   diceValue: null,
+  lastAnswerResult: null,
 };

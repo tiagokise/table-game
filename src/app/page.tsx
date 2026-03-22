@@ -5,11 +5,10 @@ import dynamic from 'next/dynamic';
 import PlayerComponent from './components/Player';
 import Dice from './components/Dice';
 import Quiz from './components/Quiz';
-import PdfUploader from './components/PdfUploader';
 import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { GameState, Question } from './game/types';
-import useWebSocket from './hooks/useWebSocket';
+import useSocketIO from './hooks/useSocketIO';
 
 const Board = dynamic(() => import('./components/Board'), { ssr: false });
 const PdfUploaderDynamic = dynamic(() => import('./components/PdfUploader'), { ssr: false });
@@ -19,66 +18,61 @@ const WINNING_POSITION = 35;
 export default function Home() {
   const [room, setRoom] = useState<string | null>(null);
   const [roomInput, setRoomInput] = useState<string>('');
-  const [gameState, setGameState] = useState<GameState>(initialGameState);
-  const { messages, sendMessage } = useWebSocket(room);
+  const [localGameState, setLocalGameState] = useState<GameState>(initialGameState);
+  const { gameState, playerId, emit } = useSocketIO(room);
   const [winner, setWinner] = useState(false);
   const [diceRoll, setDiceRoll] = useState<number | null>(null);
   const [customQuestions, setCustomQuestions] = useState<Question[] | null>(null);
-  const [playerId, setPlayerId] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<{ message: string; isCorrect: boolean } | null>(null);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.type === 'gameState') {
-        setGameState(lastMessage.payload);
-        setDiceRoll(lastMessage.payload.diceValue);
-      } else if (lastMessage.type === 'playerAssignment') {
-        setPlayerId(lastMessage.payload.playerId);
+    if (gameState) {
+      setLocalGameState(gameState);
+      setDiceRoll(gameState.diceValue);
+
+      if (gameState.lastAnswerResult) {
+        if (gameState.lastAnswerResult.isCorrect) {
+          setFeedback({ message: `Jogador ${gameState.lastAnswerResult.playerId} respondeu corretamente!`, isCorrect: true });
+        } else {
+          setFeedback({ message: `Jogador ${gameState.lastAnswerResult.playerId} respondeu incorretamente!`, isCorrect: false });
+        }
+        setTimeout(() => setFeedback(null), 2000);
       }
     }
-  }, [messages]);
+  }, [gameState]);
 
   const handleSetCustomQuestions = (newQuestions: Question[]) => {
     setCustomQuestions(newQuestions);
   };
 
   const handleRoll = (diceValue: number) => {
-    const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-    if (winner || gameState.isQuizVisible || gameState.players.length < 2 || !currentPlayer || currentPlayer.id !== playerId) return;
+    const currentPlayer = localGameState.players[localGameState.currentPlayerIndex];
+    if (winner || localGameState.isQuizVisible || localGameState.players.length < 2 || !currentPlayer || currentPlayer.id !== playerId) return;
 
     setDiceRoll(diceValue);
     const questionSource = customQuestions || questions;
     const randomQuestion = questionSource[Math.floor(Math.random() * questionSource.length)];
 
-    sendMessage({
-      type: 'rollDice',
-      payload: {
-        diceValue,
-        question: randomQuestion,
-        playerId,
-      },
+    emit('rollDice', {
+      diceValue,
+      question: randomQuestion,
+      playerId,
     });
   };
 
   const handleShowQuestion = () => {
-    sendMessage({
-      type: 'showQuestion',
-      payload: { playerId },
-    });
+    emit('showQuestion', { playerId });
   };
 
   const handleAnswer = (isCorrect: boolean) => {
-    sendMessage({
-      type: 'answerQuestion',
-      payload: {
-        isCorrect,
-        playerId,
-      },
+    emit('answerQuestion', {
+      isCorrect,
+      playerId,
     });
   };
 
   const resetGame = () => {
-    sendMessage({ type: 'resetGame', payload: { playerId } });
+    emit('resetGame', { playerId });
     setWinner(false);
     setCustomQuestions(null);
   };
@@ -96,74 +90,84 @@ export default function Home() {
           type="text"
           value={roomInput}
           onChange={(e) => setRoomInput(e.target.value)}
-          placeholder="Enter room name"
+          placeholder="Nome da Sala"
         />
-        <button onClick={handleJoinRoom}>Join Room</button>
+        <button onClick={handleJoinRoom}>Entrar na Sala</button>
       </div>
     );
   }
 
-  const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+  const currentPlayer = localGameState.players[localGameState.currentPlayerIndex];
   const isMyTurn = currentPlayer && currentPlayer.id === playerId;
-  const hasRolled = gameState.diceValue !== null;
+  const hasRolled = localGameState.diceValue !== null;
+  const questionsLoaded = customQuestions !== null;
 
   return (
     <main className="game-container">
       <aside className="game-sidebar">
-        <h2>Room: {room}</h2>
-        {playerId && <h3>You are Player {playerId}</h3>}
-        
+        <h2>Sala: {room}</h2>
+        {playerId && <h3>Você é o Jogador {playerId}</h3>}
+
         <div className="turn-indicator" style={{ backgroundColor: currentPlayer?.color || '#ccc' }}>
-          Turn: Player {currentPlayer?.id || '-'}
+          Vez: Jogador {currentPlayer?.id || '-'}
         </div>
-        
-        <h3>Players & Scores</h3>
+
+        <h3>Jogadores e Pontuações</h3>
         <ul className="scores-list">
-          {gameState.players.map((player) => (
+          {localGameState.players.map((player) => (
             <li key={player.id} style={{ color: player.color, fontWeight: player.id === playerId ? 'bold' : 'normal' }}>
-              Player {player.id}: {player.score} points
+              Jogador {player.id}: {player.score} pontos
             </li>
           ))}
         </ul>
-        
-        {gameState.players.length < 2 && <p>Waiting for more players...</p>}
-        
-        {isMyTurn && hasRolled && !gameState.isQuizVisible && (
-          <button onClick={handleShowQuestion} className="restart-button" style={{backgroundColor: '#35a1d2'}}>
-            Show Question
-          </button>
-        )}
+
+        {localGameState.players.length < 2 && <p>Aguardando mais jogadores...</p>}
 
         <button onClick={resetGame} className="restart-button">
-          Restart Game
+          Reiniciar Jogo
         </button>
+        <PdfUploaderDynamic
+          onQuestionsExtracted={handleSetCustomQuestions}
+          currentPlayerId={currentPlayer?.id || 0}
+          playerId={playerId || 0}
+          questionsLoaded={questionsLoaded}
+        />
+        </aside>
 
-        <PdfUploaderDynamic onQuestionsExtracted={handleSetCustomQuestions} />
-      </aside>
-
-      <Board>
-        {gameState.players.map((player) => (
-          <PlayerComponent key={player.id} player={player} allPlayers={gameState.players} />
+        <Board>
+        {localGameState.players.map((player) => (
+          <PlayerComponent key={player.id} player={player} allPlayers={localGameState.players} />
         ))}
-        <Dice onRoll={handleRoll} disabled={!isMyTurn || hasRolled || gameState.isQuizVisible || gameState.players.length < 2} currentRoll={diceRoll} currentPlayer={currentPlayer} />
-      </Board>
+        <Dice onRoll={handleRoll} disabled={hasRolled || localGameState.isQuizVisible || localGameState.players.length < 2} currentRoll={diceRoll} currentPlayer={currentPlayer} isMyTurn={isMyTurn} />
+        {isMyTurn && hasRolled && !localGameState.isQuizVisible && (
+          <button onClick={handleShowQuestion} className="show-question-button" style={{backgroundColor: currentPlayer?.color || '#35a1d2'}}>
+            Ver Pergunta
+          </button>
+        )}
+        </Board>
 
-      {winner && (
-        <div className="quiz-overlay">
-          <div className="quiz">
-            <h2>Player {currentPlayer.id} Wins!</h2>
-            <button onClick={resetGame} className="restart-button">
-              Play Again
+        {feedback && (
+          <div className="quiz-overlay">
+            <div className={`quiz feedback-modal ${!feedback.isCorrect ? 'error' : ''}`}>
+              <h2>{feedback.message}</h2>
+            </div>
+          </div>
+        )}
+
+        {winner && (
+          <div className="quiz-overlay">
+            <div className="quiz">
+              <h2>Jogador {currentPlayer.id} Venceu!</h2>            <button onClick={resetGame} className="restart-button">
+              Jogar Novamente
             </button>
           </div>
         </div>
-      )}
+        )}
 
-      {gameState.isQuizVisible && gameState.currentQuestion && (
+        {localGameState.isQuizVisible && localGameState.currentQuestion && (
         <div className="quiz-overlay">
-          <Quiz question={gameState.currentQuestion} onAnswer={handleAnswer} />
+          <Quiz question={localGameState.currentQuestion} onAnswer={handleAnswer} />
         </div>
-      )}
-    </main>
-  );
+        )}
+        </main>  );
 }
