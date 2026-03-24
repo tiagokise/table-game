@@ -4,11 +4,12 @@ const nextConfig: NextConfig = {
   /* config options here */
   env: {
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
-    NEXT_PUBLIC_PUSHER_KEY: 'cbefe2fef0f08ab319f4',
-    NEXT_PUBLIC_PUSHER_CLUSTER: 'sa1',
-    PUSHER_APP_ID: '2131067',
-    PUSHER_SECRET: '3ded18905f7c8c76de96',
-    REDIS_URL: "redis://default:CkHgLUYY0xXcC1hRW9C3wBP8PN6ag2NP@redis-18575.crce216.sa-east-1-2.ec2.cloud.redislabs.com:18575"
+    PUSHER_KEY: process.env.NEXT_PUBLIC_PUSHER_KEY,
+    PUSHER_CLUSTER: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+    PUSHER_APP_ID: process.env.PUSHER_APP_ID,
+    PUSHER_SECRET: process.env.PUSHER_SECRET,
+
+    REDIS_URL: process.env.REDIS_URL,
   },
   reactCompiler: true,
   images: {
