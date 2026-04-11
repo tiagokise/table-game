@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { pdfjs } from 'react-pdf';
+import { TextItem } from 'pdfjs-dist/types/src/display/api'; // Import TextItem
 import { extractQuestionsFromText, generateTitleFromText, extractQuestionsFromImage } from '../game/gemini';
 import { Question } from '../game/types';
 
@@ -72,7 +73,12 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
               for (let i = pageNum; i <= endPage; i++) {
                 const page = await pdfDoc.getPage(i);
                 const content = await page.getTextContent();
-                textChunk += content.items.map((item: any) => item.str).join(' ');
+                textChunk += content.items.map((item) => {
+                  if ('str' in item) { // Check if 'str' property exists
+                    return item.str;
+                  }
+                  return '';
+                }).join(' ');
               }
 
               if (textChunk.trim().length > 0) {
@@ -111,8 +117,8 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
             <strong>Tema:</strong> {extractedTitle}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap' }}>
-            <input style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap', width: '100%' }} type="file" onChange={handleFileChange} accept=".pdf,.png,.jpg" />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap', maxWidth: '120px' }}>
+            <input style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap', width: '100%' }} type="file" onChange={handleFileChange} accept=".pdf,.png,.jpg,.jpeg" />
             <button onClick={handleExtractQuestions} disabled={!file || loading}>
               {loading ? 'Extraindo...' : 'Extrair do Arquivo'}
             </button>

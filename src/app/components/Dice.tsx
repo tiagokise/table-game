@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface DiceProps {
   onRoll: (value: number) => void;
   disabled: boolean;
@@ -17,7 +19,7 @@ export default function Dice({ onRoll, disabled, currentRoll }: DiceProps) {
       {currentRoll === null ? (
         'Rolar Dado'
       ) : (
-        <img src={`/dice-${currentRoll}.png`} alt={`Dado: ${currentRoll}`} className="dice-image" />
+        <Image src={`/dice-${currentRoll}.png`} alt={`Dado: ${currentRoll}`} className="dice-image" width={50} height={50} />
       )}
     </ button>
   );

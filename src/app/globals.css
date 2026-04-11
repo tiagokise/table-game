@@ -47,12 +47,13 @@ main.game-container {
   padding: 20px;
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   text-align: left;
   height: 100%;
 }
 
-.game-sidebar h2, .game-sidebar h3 {
+.game-sidebar h2,
+.game-sidebar h3 {
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
 }
@@ -181,7 +182,8 @@ main.game-container {
 .dice {
   position: static;
   transform: none;
-  margin-bottom: 20px; /* Add some space between dice and other center elements if any */
+  margin-bottom: 20px;
+  /* Add some space between dice and other center elements if any */
   padding: 10px 20px;
   font-size: 1.2rem;
   cursor: pointer;
@@ -221,7 +223,7 @@ main.game-container {
 }
 
 .restart-button {
-  width: 100%;
+  width: fit-content;
   margin-top: 10px;
   padding: 12px 20px;
   font-size: 1.1rem;
@@ -229,6 +231,13 @@ main.game-container {
   background-color: #dcd435;
   border: none;
   border-radius: 5px;
+
+  @media (min-width: 769px) {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: auto;
+  }
 }
 
 .restart-button:hover {
@@ -278,15 +287,24 @@ main.game-container {
   margin-top: auto;
   padding-top: 20px;
   border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .pdf-uploader input {
-  display: block;
+  display: flex;
   margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
 }
 
 .pdf-uploader button {
-  width: 100%;
+  /* width: 100%; */
   padding: 10px;
   border-radius: 5px;
   border: none;
@@ -300,15 +318,19 @@ main.game-container {
 }
 
 .quiz.feedback-modal {
-  background-color: #d4edda; /* Light green */
-  color: #155724; /* Dark green text */
+  background-color: #d4edda;
+  /* Light green */
+  color: #155724;
+  /* Dark green text */
   border: 2px solid #c3e6cb;
   text-align: center;
 }
 
 .quiz.feedback-modal.error {
-  background-color: #f8d7da; /* Light red */
-  color: #721c24; /* Dark red text */
+  background-color: #f8d7da;
+  /* Light red */
+  color: #721c24;
+  /* Dark red text */
   border: 2px solid #f5c6cb;
 }
 
@@ -317,24 +339,37 @@ main.game-container {
   body {
     padding: 10px;
     height: auto;
-    overflow: visible; /* Allow scrolling on mobile */
+    overflow: visible;
+    /* Allow scrolling on mobile */
   }
 
   main.game-container {
     flex-direction: column;
     height: auto;
-    gap: 10px;
+    gap: 15px;
+    /* Adjusted gap */
   }
 
   .game-sidebar {
     width: 100%;
     height: auto;
-    order: 1; /* Display sidebar first */
+    order: 1;
+    /* Display sidebar first */
+    padding: 15px;
+    /* Reduced padding */
+    gap: 15px;
+    /* Reduced gap */
+  }
+
+  .game-sidebar .scores-list li {
+    font-size: 1em;
+    /* Reduced font size */
   }
 
   .board-container {
     width: 100%;
-    order: 2; /* Display board second */
+    order: 2;
+    /* Display board second */
     padding: 0;
   }
 
@@ -350,8 +385,32 @@ main.game-container {
     height: 8vw;
   }
 
-  .dice {
+  /* Smaller buttons on mobile */
+  .dice,
+  .show-question-button,
+  .restart-button,
+  .pdf-uploader button {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    width: auto;
+    /* min-width: 100px; */
+  }
+
+  .restart-button {
     font-size: 1rem;
-    min-width: 120px;
+  }
+
+  .dice-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .quiz {
+    padding: 20px;
+  }
+
+  .options button {
+    padding: 10px;
+    font-size: 0.9em;
   }
 }

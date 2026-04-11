@@ -1,5 +1,6 @@
 // components/Board.tsx
 import React from 'react';
+import PlayerComponent from './Player'; // Import PlayerComponent to use its type
 
 interface BoardProps {
   children: React.ReactNode;
@@ -36,7 +37,7 @@ const Board = ({ children }: BoardProps) => {
   const players: React.ReactNode[] = [];
   const otherChildren: React.ReactNode[] = [];
   React.Children.forEach(children, (child) => {
-    if (React.isValidElement(child) && (child.type as any).name === 'PlayerComponent') {
+    if (React.isValidElement(child) && typeof child.type === 'function' && child.type.name === PlayerComponent.name) {
       players.push(child);
     } else {
       otherChildren.push(child);

@@ -95,18 +95,18 @@ export default function Home() {
             Jogador: {currentPlayer.score} pontos
           </li>
         </ul>
-
-        <button onClick={resetGame} className="restart-button">
-          Reiniciar Jogo
-        </button>
         <PdfUploaderDynamic
           onQuestionsExtracted={handleSetCustomQuestions}
         />
+
       </aside>
 
       <Board>
         <PlayerComponent player={currentPlayer} />
         <Dice onRoll={handleRoll} disabled={hasRolled || gameState.isQuizVisible} currentRoll={diceRoll} />
+        <button onClick={resetGame} className="restart-button">
+          Reiniciar Jogo
+        </button>
       </Board>
 
       {feedback && (
