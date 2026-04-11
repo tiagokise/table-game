@@ -5,10 +5,9 @@ import { Player } from '../game/types';
 
 interface PlayerProps {
   player: Player;
-  allPlayers: Player[];
 }
 
-const PlayerComponent = ({ player, allPlayers }: PlayerProps) => {
+const PlayerComponent = ({ player }: PlayerProps) => {
   const getPlayerPosition = (pos: number) => {
     let row = 1;
     let col = 1;
@@ -35,25 +34,10 @@ const PlayerComponent = ({ player, allPlayers }: PlayerProps) => {
     };
   };
 
-  const playersOnSameSquare = allPlayers.filter(p => p.position === player.position);
-  const indexOnSquare = playersOnSameSquare.findIndex(p => p.id === player.id);
-  
-  const offsets = [
-    { transform: 'translate(-25%, -25%)' }, // Top-left
-    { transform: 'translate(25%, -25%)' },  // Top-right
-    { transform: 'translate(-25%, 25%)' },  // Bottom-left
-    { transform: 'translate(25%, 25%)' },   // Bottom-right
-  ];
-
   const style: React.CSSProperties = {
     ...getPlayerPosition(player.position),
     backgroundColor: player.color,
-    zIndex: indexOnSquare + 1,
   };
-
-  if (playersOnSameSquare.length > 1) {
-    Object.assign(style, offsets[indexOnSquare % 4]);
-  }
 
   return (
     <div

@@ -1,7 +1,7 @@
 // components/PdfUploader.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { pdfjs } from 'react-pdf';
 import { extractQuestionsFromText, generateTitleFromText, extractQuestionsFromImage } from '../game/gemini';
 import { Question } from '../game/types';
@@ -13,23 +13,13 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 interface PdfUploaderProps {
   onQuestionsExtracted: (questions: Question[]) => void;
-  currentPlayerId: string | null;
-  playerId: string | null;
-  questionsLoaded: boolean;
 }
 
-const PdfUploader = ({ onQuestionsExtracted, currentPlayerId, playerId, questionsLoaded }: PdfUploaderProps) => {
+const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [extractedTitle, setExtractedTitle] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!questionsLoaded) {
-      setExtractedTitle(null);
-      setFile(null);
-    }
-  }, [questionsLoaded]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -53,7 +43,6 @@ const PdfUploader = ({ onQuestionsExtracted, currentPlayerId, playerId, question
             const base64Image = (event.target.result as string).split(',')[1];
             const questions = await extractQuestionsFromImage(base64Image, file.type);
             onQuestionsExtracted(questions);
-            // Since we can't get a title from an image in the same way, we can set a generic title or leave it null
             setExtractedTitle(file.name);
           } catch (e) {
             setError('Erro ao extrair perguntas da imagem.');
@@ -113,28 +102,24 @@ const PdfUploader = ({ onQuestionsExtracted, currentPlayerId, playerId, question
     }
   };
 
-  const isCurrentPlayer = currentPlayerId === playerId;
-
   return (
     <div className="pdf-uploader">
       <h4>Perguntas Personalizadas</h4>
-      {isCurrentPlayer && (
-        <>
-          {extractedTitle ? (
-            <div className="extracted-title">
-              <strong>Tema:</strong> {extractedTitle}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap' }}>
-              <input style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap', width: '100%' }} type="file" onChange={handleFileChange} accept=".pdf,.png,.jpg" />
-              <button onClick={handleExtractQuestions} disabled={!file || loading}>
-                {loading ? 'Extraindo...' : 'Extrair do Arquivo'}
-              </button>
-            </div>
-          )}
-          {error && <p style={{ color: 'red' }}>{error}</p>}
-        </>
-      )}
+      <>
+        {extractedTitle ? (
+          <div className="extracted-title">
+            <strong>Tema:</strong> {extractedTitle}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap' }}>
+            <input style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap', width: '100%' }} type="file" onChange={handleFileChange} accept=".pdf,.png,.jpg" />
+            <button onClick={handleExtractQuestions} disabled={!file || loading}>
+              {loading ? 'Extraindo...' : 'Extrair do Arquivo'}
+            </button>
+          </div>
+        )}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+      </>
     </div>
   );
 };
