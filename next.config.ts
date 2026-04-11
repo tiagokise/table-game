@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'export',
   /* config options here */
   env: {
     NEXT_GEMINI_API_KEY: process.env.NEXT_GEMINI_API_KEY,
