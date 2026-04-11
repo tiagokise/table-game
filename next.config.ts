@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   env: {
-    NEXT_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+    NEXT_GEMINI_API_KEY: process.env.NEXT_GEMINI_API_KEY,
     PUSHER_KEY: process.env.NEXT_PUBLIC_PUSHER_KEY,
     PUSHER_CLUSTER: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
     PUSHER_APP_ID: process.env.PUSHER_APP_ID,
