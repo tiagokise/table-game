@@ -47,8 +47,9 @@ const PlayerComponent = ({ player }: PlayerProps) => {
       <Image
         src="/aliens-1300-svgrepo-com.png"
         alt="Player"
-        layout="fill"
-        objectFit="contain"
+        fill
+        sizes="(max-width: 768px) 7vw, 4.5vmin"
+        style={{ objectFit: 'contain' }}
       />
     </div>
   );

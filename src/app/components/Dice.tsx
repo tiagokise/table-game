@@ -15,12 +15,12 @@ export default function Dice({ onRoll, disabled, currentRoll }: DiceProps) {
   };
 
   return (
-    <button onClick={rollDice} className="dice" disabled={disabled} style={{ backgroundColor: "lightGray", color: 'black' }}>
+    <button onClick={rollDice} className="dice" disabled={disabled}>
       {currentRoll === null ? (
-        'Rolar Dado'
+        <span className="dice-label">Rolar Dado</span>
       ) : (
         <Image src={`/dice-${currentRoll}.png`} alt={`Dado: ${currentRoll}`} className="dice-image" width={50} height={50} />
       )}
-    </ button>
+    </button>
   );
 }

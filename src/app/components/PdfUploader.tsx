@@ -110,22 +110,35 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
 
   return (
     <div className="pdf-uploader">
-      <h4>Perguntas Personalizadas</h4>
-      <>
-        {extractedTitle ? (
-          <div className="extracted-title">
-            <strong>Tema:</strong> {extractedTitle}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap', maxWidth: '120px' }}>
-            <input style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexFlow: 'wrap', width: '100%' }} type="file" onChange={handleFileChange} accept=".pdf,.png,.jpg,.jpeg" />
-            <button onClick={handleExtractQuestions} disabled={!file || loading}>
-              {loading ? 'Extraindo...' : 'Extrair do Arquivo'}
-            </button>
-          </div>
-        )}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </>
+      {extractedTitle ? (
+        <div className="extracted-title">
+          <strong>Tema</strong>
+          <span>{extractedTitle}</span>
+        </div>
+      ) : (
+        <>
+          <label className="file-picker">
+            <input
+              type="file"
+              onChange={handleFileChange}
+              accept=".pdf,.png,.jpg,.jpeg"
+              className="file-picker-input"
+            />
+            <span className="file-picker-icon" aria-hidden>📄</span>
+            <span className={`file-picker-text ${file ? 'has-file' : ''}`}>
+              {file ? file.name : 'Escolher PDF ou imagem'}
+            </span>
+          </label>
+          <button
+            onClick={handleExtractQuestions}
+            disabled={!file || loading}
+            className="extract-button"
+          >
+            {loading ? 'Extraindo…' : 'Extrair Perguntas'}
+          </button>
+        </>
+      )}
+      {error && <p className="uploader-error">{error}</p>}
     </div>
   );
 };

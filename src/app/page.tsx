@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import PlayerComponent from './components/Player';
 import Dice from './components/Dice';
@@ -36,8 +36,12 @@ export default function Home() {
       ...prev,
       diceValue,
       currentQuestion: randomQuestion,
-      isQuizVisible: true,
+      isQuizVisible: false,
     }));
+  };
+
+  const handleShowQuestion = () => {
+    setGameState((prev) => ({ ...prev, isQuizVisible: true }));
   };
 
   const handleAnswer = (isCorrect: boolean) => {
@@ -89,24 +93,55 @@ export default function Home() {
   return (
     <main className="game-container">
       <aside className="game-sidebar">
-        <h3>Pontuação</h3>
-        <ul className="scores-list">
-          <li style={{ color: currentPlayer.color }}>
-            Jogador: {currentPlayer.score} pontos
-          </li>
-        </ul>
-        <PdfUploaderDynamic
-          onQuestionsExtracted={handleSetCustomQuestions}
-        />
+        <div className="sidebar-header">
+          <h1 className="sidebar-title">Table Game</h1>
+          <p className="sidebar-subtitle">Role o dado e responda para avançar</p>
+        </div>
 
+        <section className="score-card" style={{ borderColor: currentPlayer.color }}>
+          <div className="score-card-main">
+            <span className="score-label">Pontuação</span>
+            <span className="score-value" style={{ color: currentPlayer.color }}>
+              {currentPlayer.score}
+            </span>
+          </div>
+          <div className="score-card-meta">
+            <span className="score-meta">Casa {currentPlayer.position} de {WINNING_POSITION}</span>
+            <div className="score-progress">
+              <div
+                className="score-progress-fill"
+                style={{
+                  width: `${Math.min(100, (currentPlayer.position / WINNING_POSITION) * 100)}%`,
+                  backgroundColor: currentPlayer.color,
+                }}
+              />
+            </div>
+          </div>
+        </section>
+
+        <details className="uploader-details">
+          <summary className="uploader-summary">
+            <span>Perguntas Personalizadas</span>
+            <span className="chevron" aria-hidden>▾</span>
+          </summary>
+          <PdfUploaderDynamic
+            onQuestionsExtracted={handleSetCustomQuestions}
+          />
+        </details>
+
+        <button onClick={resetGame} className="restart-button">
+          Reiniciar Jogo
+        </button>
       </aside>
 
       <Board>
         <PlayerComponent player={currentPlayer} />
         <Dice onRoll={handleRoll} disabled={hasRolled || gameState.isQuizVisible} currentRoll={diceRoll} />
-        <button onClick={resetGame} className="restart-button">
-          Reiniciar Jogo
-        </button>
+        {hasRolled && !gameState.isQuizVisible && gameState.currentQuestion && (
+          <button onClick={handleShowQuestion} className="show-question-button">
+            Ver Pergunta
+          </button>
+        )}
       </Board>
 
       {feedback && (
