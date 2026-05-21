@@ -4,9 +4,23 @@ import PlayerComponent from './Player'; // Import PlayerComponent to use its typ
 
 interface BoardProps {
   children: React.ReactNode;
+  isMoving?: boolean;
+  moveDirection?: 'forward' | 'backward' | null;
+  steppedCells?: number[];
+  landingCell?: number | null;
+  focusX?: number;
+  focusY?: number;
 }
 
-const Board = ({ children }: BoardProps) => {
+const Board = ({
+  children,
+  isMoving = false,
+  moveDirection = null,
+  steppedCells = [],
+  landingCell = null,
+  focusX = 50,
+  focusY = 50,
+}: BoardProps) => {
 
   const getPerimeterCells = () => {
     const cells = [];
@@ -44,18 +58,53 @@ const Board = ({ children }: BoardProps) => {
     }
   });
 
+  const burstColor = moveDirection === 'backward' ? '#fca5a5' : '#86efac';
+  const boardClassName = [
+    'board',
+    isMoving ? 'moving' : '',
+    landingCell !== null ? 'shake' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const boardStyle = {
+    ['--focus-x' as string]: focusX,
+    ['--focus-y' as string]: focusY,
+  } as React.CSSProperties;
+
   return (
     <div className="board-container">
-      <div className="board">
-        {perimeterCells.map(({ path, row, col }) => (
-          <div
-            key={path}
-            className={`cell ${path % 2 === 0 ? 'even' : ''}`}
-            style={{ gridRow: row, gridColumn: col }}
-          >
-            {path}
-          </div>
-        ))}
+      <div className={boardClassName} style={boardStyle}>
+        {perimeterCells.map(({ path, row, col }) => {
+          const position = path - 1;
+          const isStepped = steppedCells.includes(position);
+          const isLanding = landingCell === position;
+          const cellClassName = [
+            'cell',
+            path % 2 === 0 ? 'even' : '',
+            isStepped ? 'cell-stepped' : '',
+            isStepped && moveDirection === 'forward' ? 'cell-stepped--forward' : '',
+            isStepped && moveDirection === 'backward' ? 'cell-stepped--backward' : '',
+            isLanding ? 'cell-landing' : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          return (
+            <div
+              key={path}
+              className={cellClassName}
+              style={{ gridRow: row, gridColumn: col }}
+            >
+              {path}
+              {isLanding && (
+                <span
+                  className="landing-burst"
+                  style={{ ['--burst-color' as string]: burstColor }}
+                />
+              )}
+            </div>
+          );
+        })}
         <div
           className="center-content-container"
           style={{ gridRow: '2 / 10', gridColumn: '2 / 10' }}

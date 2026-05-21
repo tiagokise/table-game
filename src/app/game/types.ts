@@ -1,9 +1,20 @@
 // src/app/game/types.ts
 
+export type Subject =
+  | 'geografia'
+  | 'historia'
+  | 'ciencias'
+  | 'cultura'
+  | 'matematica'
+  | 'esportes'
+  | 'portugues'
+  | 'cinema';
+
 export interface Question {
   question: string;
   options: string[];
   answer: string;
+  subject?: Subject;
 }
 
 export interface Player {

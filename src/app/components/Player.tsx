@@ -4,11 +4,12 @@ import { Player } from '../game/types';
 
 interface PlayerProps {
   player: Player;
+  isMoving?: boolean;
 }
 
 const HOP_DURATION = 460;
 
-const PlayerComponent = ({ player }: PlayerProps) => {
+const PlayerComponent = ({ player, isMoving = false }: PlayerProps) => {
   const [hopping, setHopping] = useState(false);
   const prevPosRef = useRef(player.position);
 
@@ -53,7 +54,7 @@ const PlayerComponent = ({ player }: PlayerProps) => {
 
   return (
     <div
-      className={`player ${hopping ? 'hopping' : ''}`}
+      className={`player ${hopping ? 'hopping' : ''} ${isMoving ? 'player--focus' : ''}`}
       style={style}
       aria-label={`Jogador na casa ${player.position}`}
     >
