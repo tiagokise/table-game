@@ -31,3 +31,9 @@ export interface GameState {
   currentQuestion: Question | null;
   diceValue: number | null;
 }
+
+export type SpecialCellType = 'bonus' | 'portal';
+
+export type SpecialCell =
+  | { position: number; type: 'bonus' }
+  | { position: number; type: 'portal'; target: number };

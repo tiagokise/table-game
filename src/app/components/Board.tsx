@@ -1,6 +1,7 @@
 // components/Board.tsx
 import React from 'react';
 import PlayerComponent from './Player'; // Import PlayerComponent to use its type
+import { getSpecialCell } from '../game/board-config';
 
 interface BoardProps {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface BoardProps {
   landingCell?: number | null;
   focusX?: number;
   focusY?: number;
+  triggeredSpecial?: { position: number; type: 'bonus' | 'portal' } | null;
 }
 
 const Board = ({
@@ -20,6 +22,7 @@ const Board = ({
   landingCell = null,
   focusX = 50,
   focusY = 50,
+  triggeredSpecial = null,
 }: BoardProps) => {
 
   const getPerimeterCells = () => {
@@ -79,6 +82,8 @@ const Board = ({
           const position = path - 1;
           const isStepped = steppedCells.includes(position);
           const isLanding = landingCell === position;
+          const special = getSpecialCell(position);
+          const isSpecialTriggered = triggeredSpecial?.position === position;
           const cellClassName = [
             'cell',
             path % 2 === 0 ? 'even' : '',
@@ -86,6 +91,8 @@ const Board = ({
             isStepped && moveDirection === 'forward' ? 'cell-stepped--forward' : '',
             isStepped && moveDirection === 'backward' ? 'cell-stepped--backward' : '',
             isLanding ? 'cell-landing' : '',
+            special ? `cell-special cell-special--${special.type}` : '',
+            isSpecialTriggered ? 'cell-special--triggered' : '',
           ]
             .filter(Boolean)
             .join(' ');
@@ -95,7 +102,12 @@ const Board = ({
               className={cellClassName}
               style={{ gridRow: row, gridColumn: col }}
             >
-              {path}
+              <span className="cell-path">{path}</span>
+              {special && (
+                <span className="cell-special-icon" aria-hidden>
+                  {special.type === 'bonus' ? '⭐' : '🌀'}
+                </span>
+              )}
               {isLanding && (
                 <span
                   className="landing-burst"

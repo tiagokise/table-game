@@ -9,7 +9,9 @@ import SubjectSelector from './components/SubjectSelector';
 import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { SUBJECTS } from './game/subjects';
-import { GameState, Question, Subject } from './game/types';
+import { BONUS_EXTRA_STEPS, getSpecialCell } from './game/board-config';
+import { GameState, Question, Subject, SpecialCellType } from './game/types';
+import { useSound } from './hooks/useSound';
 
 const Board = dynamic(() => import('./components/Board'), { ssr: false });
 // const PdfUploaderDynamic = dynamic(() => import('./components/PdfUploader'), { ssr: false });
@@ -19,6 +21,7 @@ const FEEDBACK_DURATION = 1500;
 const STEP_DURATION = 480;
 const CELL_STEP_DURATION = 520;
 const LANDING_DURATION = 720;
+const SPECIAL_HOLD_DURATION = 700;
 
 export default function Home() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
@@ -32,8 +35,11 @@ export default function Home() {
   const [landingCell, setLandingCell] = useState<number | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const [triggeredSpecial, setTriggeredSpecial] = useState<{ position: number; type: SpecialCellType } | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
   const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const auxTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const { play: playSound, muted, toggleMute } = useSound();
 
   const activeQuestions = useMemo(() => {
     if (customQuestions && customQuestions.length > 0) return customQuestions;
@@ -61,6 +67,7 @@ export default function Home() {
   const handleRoll = (diceValue: number) => {
     if (winner || gameState.isQuizVisible) return;
 
+    playSound('dice-roll');
     setDiceRoll(diceValue);
     const randomQuestion = activeQuestions[Math.floor(Math.random() * activeQuestions.length)];
 
@@ -76,26 +83,79 @@ export default function Home() {
     setGameState((prev) => ({ ...prev, isQuizVisible: true }));
   };
 
-  const animatePlayer = (currentPos: number, targetPos: number) => {
+  const finishMovement = (finalPos: number) => {
+    setIsMoving(false);
+    setMoveDirection(null);
+    if (finalPos >= WINNING_POSITION) {
+      playSound('victory');
+      setWinner(true);
+      setShowConfetti(true);
+    }
+  };
+
+  const animatePlayer = (
+    currentPos: number,
+    targetPos: number,
+    direction: 'forward' | 'backward',
+    isChain = false,
+  ) => {
     if (currentPos === targetPos) {
-      setGameState((prev) => ({ ...prev, diceValue: null, currentQuestion: null }));
-      setDiceRoll(null);
+      if (!isChain) {
+        setGameState((prev) => ({ ...prev, diceValue: null, currentQuestion: null }));
+        setDiceRoll(null);
+      }
       animationTimerRef.current = null;
       setLandingCell(targetPos);
+
+      const special = direction === 'forward' ? getSpecialCell(targetPos) : null;
+
       scheduleAux(() => {
         setLandingCell(null);
-        setIsMoving(false);
-        setMoveDirection(null);
-        if (targetPos >= WINNING_POSITION) {
-          setWinner(true);
+
+        if (special?.type === 'bonus' && targetPos < WINNING_POSITION) {
+          playSound('bonus');
+          setTriggeredSpecial({ position: targetPos, type: 'bonus' });
+          scheduleAux(() => {
+            setTriggeredSpecial(null);
+            const bonusTarget = Math.min(targetPos + BONUS_EXTRA_STEPS, WINNING_POSITION);
+            animatePlayer(targetPos, bonusTarget, 'forward', true);
+          }, SPECIAL_HOLD_DURATION);
+          return;
         }
+
+        if (special?.type === 'portal') {
+          playSound('portal');
+          setTriggeredSpecial({ position: targetPos, type: 'portal' });
+          const portalTarget = Math.min(special.target, WINNING_POSITION);
+          scheduleAux(() => {
+            setTriggeredSpecial(null);
+            setGameState((prev) => {
+              const newPlayers = [...prev.players];
+              newPlayers[prev.currentPlayerIndex] = {
+                ...newPlayers[prev.currentPlayerIndex],
+                position: portalTarget,
+                score: portalTarget,
+              };
+              return { ...prev, players: newPlayers };
+            });
+            setLandingCell(portalTarget);
+            scheduleAux(() => {
+              setLandingCell(null);
+              finishMovement(portalTarget);
+            }, LANDING_DURATION);
+          }, SPECIAL_HOLD_DURATION);
+          return;
+        }
+
+        finishMovement(targetPos);
       }, LANDING_DURATION);
       return;
     }
 
-    const direction = targetPos > currentPos ? 1 : -1;
-    const nextPos = currentPos + direction;
+    const step = targetPos > currentPos ? 1 : -1;
+    const nextPos = currentPos + step;
 
+    playSound('step');
     setSteppedCells((prev) => [...prev, nextPos]);
     scheduleAux(() => {
       setSteppedCells((prev) => prev.filter((c) => c !== nextPos));
@@ -112,7 +172,7 @@ export default function Home() {
     });
 
     animationTimerRef.current = setTimeout(
-      () => animatePlayer(nextPos, targetPos),
+      () => animatePlayer(nextPos, targetPos, direction, isChain),
       STEP_DURATION,
     );
   };
@@ -124,19 +184,22 @@ export default function Home() {
       ? Math.min(currentPosition + diceValue, WINNING_POSITION)
       : Math.max(currentPosition - diceValue, 0);
 
+    playSound(isCorrect ? 'correct' : 'incorrect');
     setGameState((prev) => ({ ...prev, isQuizVisible: false }));
     setFeedback({
       message: isCorrect ? 'Você respondeu corretamente!' : 'Você respondeu incorretamente!',
       isCorrect,
     });
 
+    const direction: 'forward' | 'backward' = targetPosition >= currentPosition ? 'forward' : 'backward';
+
     animationTimerRef.current = setTimeout(() => {
       setFeedback(null);
       if (targetPosition !== currentPosition) {
         setIsMoving(true);
-        setMoveDirection(targetPosition > currentPosition ? 'forward' : 'backward');
+        setMoveDirection(direction);
       }
-      animatePlayer(currentPosition, targetPosition);
+      animatePlayer(currentPosition, targetPosition, direction);
     }, FEEDBACK_DURATION);
   };
 
@@ -157,6 +220,8 @@ export default function Home() {
     setLandingCell(null);
     setSelectedSubject(null);
     setHasStarted(false);
+    setTriggeredSpecial(null);
+    setShowConfetti(false);
   };
 
   const handleStart = (subject: Subject | null) => {
@@ -247,9 +312,20 @@ export default function Home() {
           />
         </details> */}
 
-        <button onClick={resetGame} className="restart-button">
-          Reiniciar Jogo
-        </button>
+        <div className="sidebar-actions">
+          <button
+            onClick={toggleMute}
+            className="sound-toggle"
+            aria-label={muted ? 'Ativar som' : 'Silenciar'}
+            type="button"
+          >
+            <span className="sound-toggle-icon" aria-hidden>{muted ? '🔇' : '🔊'}</span>
+            <span className="sound-toggle-label">{muted ? 'Som desligado' : 'Som ligado'}</span>
+          </button>
+          <button onClick={resetGame} className="restart-button">
+            Reiniciar Jogo
+          </button>
+        </div>
       </aside>
 
       <Board
@@ -259,6 +335,7 @@ export default function Home() {
         landingCell={landingCell}
         focusX={cameraFocus.x}
         focusY={cameraFocus.y}
+        triggeredSpecial={triggeredSpecial}
       >
         <PlayerComponent player={currentPlayer} isMoving={isMoving} />
         <Dice onRoll={handleRoll} disabled={hasRolled || gameState.isQuizVisible} currentRoll={diceRoll} />
@@ -279,6 +356,13 @@ export default function Home() {
 
       {winner && (
         <div className="quiz-overlay">
+          {showConfetti && (
+            <div className="confetti" aria-hidden>
+              {Array.from({ length: 60 }).map((_, i) => (
+                <span key={i} className={`confetti-piece confetti-piece--${i % 6}`} style={{ left: `${(i * 1.7) % 100}%`, animationDelay: `${(i % 10) * 0.08}s` }} />
+              ))}
+            </div>
+          )}
           <div className="quiz simple-modal">
             <h2>Você Venceu!</h2>
             <button onClick={resetGame} className="restart-button">
