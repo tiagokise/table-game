@@ -551,11 +551,11 @@ main.game-container {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100vmin;
+  height: 100vmin;
   max-width: none;
   max-height: none;
-  aspect-ratio: auto;
+  aspect-ratio: 1;
   margin: 0;
   border: none;
   border-radius: 0;
@@ -563,8 +563,8 @@ main.game-container {
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.25s ease;
   transform:
     translate(
-      calc((50 - var(--focus-x) * 2.1) * 1vw),
-      calc((50 - var(--focus-y) * 2.1) * 1vh)
+      calc(50vw - var(--focus-x) * 2.1 * 1vmin),
+      calc(50vh - var(--focus-y) * 2.1 * 1vmin)
     )
     scale(2.1);
   box-shadow: 0 0 0 100vmax #fce7f3;
