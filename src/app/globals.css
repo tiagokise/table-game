@@ -541,6 +541,25 @@ main.game-container {
   opacity: 0.35;
 }
 
+.game-container.focus-mode::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    #fef7ff 0%,
+    #fce7f3 40%,
+    #e9d5ff 100%
+  );
+  animation: focus-bg-fade 0.35s ease forwards;
+}
+@keyframes focus-bg-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .board {
   --focus-x: 50;
   --focus-y: 50;
@@ -558,7 +577,7 @@ main.game-container {
   aspect-ratio: 1;
   margin: 0;
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-md);
   z-index: 90;
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.25s ease;
   transform:
@@ -567,7 +586,9 @@ main.game-container {
       calc(50vh - var(--focus-y) * 2.1 * 1vmin)
     )
     scale(2.1);
-  box-shadow: 0 0 0 100vmax #fce7f3;
+  box-shadow:
+    0 30px 80px -20px rgba(139, 92, 246, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 .board.moving.shake {
   animation: none;
@@ -577,8 +598,7 @@ main.game-container {
   transition: opacity 0.35s ease, filter 0.35s ease;
 }
 .board.moving .center-content-container {
-  opacity: 0.08;
-  filter: blur(6px);
+  opacity: 0;
 }
 
 .cell {
@@ -586,7 +606,7 @@ main.game-container {
   transition: filter 0.35s ease, box-shadow 0.3s ease;
 }
 .board.moving .cell:not(.cell-stepped):not(.cell-landing) {
-  filter: brightness(0.28) saturate(0.45);
+  filter: brightness(0.5) saturate(0.7);
 }
 
 .player {
