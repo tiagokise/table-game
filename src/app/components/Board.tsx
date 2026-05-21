@@ -46,7 +46,7 @@ const Board = ({ children }: BoardProps) => {
 
   return (
     <div className="board-container">
-      <div className="board" style={{ backgroundImage: 'url("/bg-table-board.png")', backgroundSize: 'cover' }}>
+      <div className="board">
         {perimeterCells.map(({ path, row, col }) => (
           <div
             key={path}

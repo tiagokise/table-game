@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import PlayerComponent from './components/Player';
 import Dice from './components/Dice';
@@ -13,6 +13,8 @@ const Board = dynamic(() => import('./components/Board'), { ssr: false });
 const PdfUploaderDynamic = dynamic(() => import('./components/PdfUploader'), { ssr: false });
 
 const WINNING_POSITION = 35;
+const FEEDBACK_DURATION = 1500;
+const STEP_DURATION = 480;
 
 export default function Home() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
@@ -20,6 +22,7 @@ export default function Home() {
   const [diceRoll, setDiceRoll] = useState<number | null>(null);
   const [customQuestions, setCustomQuestions] = useState<Question[] | null>(null);
   const [feedback, setFeedback] = useState<{ message: string; isCorrect: boolean } | null>(null);
+  const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSetCustomQuestions = (newQuestions: Question[]) => {
     setCustomQuestions(newQuestions);
@@ -44,42 +47,59 @@ export default function Home() {
     setGameState((prev) => ({ ...prev, isQuizVisible: true }));
   };
 
-  const handleAnswer = (isCorrect: boolean) => {
-    setGameState((prev) => {
-      const currentPlayer = prev.players[prev.currentPlayerIndex];
-      let newPosition = currentPlayer.position;
-      const diceValue = prev.diceValue || 0;
-
-      if (isCorrect) {
-        newPosition += diceValue;
-        if (newPosition >= WINNING_POSITION) {
-          newPosition = WINNING_POSITION;
-          setWinner(true);
-        }
-        setFeedback({ message: 'Você respondeu corretamente!', isCorrect: true });
-      } else {
-        newPosition -= diceValue;
-        if (newPosition < 0) {
-          newPosition = 0;
-        }
-        setFeedback({ message: 'Você respondeu incorretamente!', isCorrect: false });
+  const animatePlayer = (currentPos: number, targetPos: number) => {
+    if (currentPos === targetPos) {
+      setGameState((prev) => ({ ...prev, diceValue: null, currentQuestion: null }));
+      animationTimerRef.current = null;
+      if (targetPos >= WINNING_POSITION) {
+        setWinner(true);
       }
+      return;
+    }
 
+    const direction = targetPos > currentPos ? 1 : -1;
+    const nextPos = currentPos + direction;
+
+    setGameState((prev) => {
       const newPlayers = [...prev.players];
-      newPlayers[prev.currentPlayerIndex] = { ...currentPlayer, position: newPosition, score: newPosition };
-
-      setTimeout(() => setFeedback(null), 2000);
-
-      return {
-        ...prev,
-        players: newPlayers,
-        isQuizVisible: false,
-        diceValue: null,
+      newPlayers[prev.currentPlayerIndex] = {
+        ...newPlayers[prev.currentPlayerIndex],
+        position: nextPos,
+        score: nextPos,
       };
+      return { ...prev, players: newPlayers };
     });
+
+    animationTimerRef.current = setTimeout(
+      () => animatePlayer(nextPos, targetPos),
+      STEP_DURATION,
+    );
+  };
+
+  const handleAnswer = (isCorrect: boolean) => {
+    const diceValue = gameState.diceValue ?? 0;
+    const currentPosition = gameState.players[gameState.currentPlayerIndex].position;
+    const targetPosition = isCorrect
+      ? Math.min(currentPosition + diceValue, WINNING_POSITION)
+      : Math.max(currentPosition - diceValue, 0);
+
+    setGameState((prev) => ({ ...prev, isQuizVisible: false }));
+    setFeedback({
+      message: isCorrect ? 'Você respondeu corretamente!' : 'Você respondeu incorretamente!',
+      isCorrect,
+    });
+
+    animationTimerRef.current = setTimeout(() => {
+      setFeedback(null);
+      animatePlayer(currentPosition, targetPosition);
+    }, FEEDBACK_DURATION);
   };
 
   const resetGame = () => {
+    if (animationTimerRef.current) {
+      clearTimeout(animationTimerRef.current);
+      animationTimerRef.current = null;
+    }
     setGameState(initialGameState);
     setWinner(false);
     setDiceRoll(null);
@@ -154,7 +174,7 @@ export default function Home() {
 
       {winner && (
         <div className="quiz-overlay">
-          <div className="quiz">
+          <div className="quiz simple-modal">
             <h2>Você Venceu!</h2>
             <button onClick={resetGame} className="restart-button">
               Jogar Novamente

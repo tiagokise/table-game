@@ -1,13 +1,25 @@
 // components/Player.tsx
-import React from 'react';
-import Image from 'next/image';
+import React, { useEffect, useRef, useState } from 'react';
 import { Player } from '../game/types';
 
 interface PlayerProps {
   player: Player;
 }
 
+const HOP_DURATION = 460;
+
 const PlayerComponent = ({ player }: PlayerProps) => {
+  const [hopping, setHopping] = useState(false);
+  const prevPosRef = useRef(player.position);
+
+  useEffect(() => {
+    if (prevPosRef.current === player.position) return;
+    prevPosRef.current = player.position;
+    setHopping(true);
+    const timer = setTimeout(() => setHopping(false), HOP_DURATION);
+    return () => clearTimeout(timer);
+  }, [player.position]);
+
   const getPlayerPosition = (pos: number) => {
     let row = 1;
     let col = 1;
@@ -36,21 +48,16 @@ const PlayerComponent = ({ player }: PlayerProps) => {
 
   const style: React.CSSProperties = {
     ...getPlayerPosition(player.position),
-    backgroundColor: player.color,
+    ['--player-color' as string]: player.color,
   };
 
   return (
     <div
-      className={`player ${player.color}`}
+      className={`player ${hopping ? 'hopping' : ''}`}
       style={style}
+      aria-label={`Jogador na casa ${player.position}`}
     >
-      <Image
-        src="/aliens-1300-svgrepo-com.png"
-        alt="Player"
-        fill
-        sizes="(max-width: 768px) 7vw, 4.5vmin"
-        style={{ objectFit: 'contain' }}
-      />
+      <span className="player-marble" />
     </div>
   );
 };
