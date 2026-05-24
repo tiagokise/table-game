@@ -13,14 +13,13 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 interface PdfUploaderProps {
-  onQuestionsExtracted: (questions: Question[]) => void;
+  onQuestionsExtracted: (questions: Question[], title?: string) => void;
 }
 
 const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [extractedTitle, setExtractedTitle] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,8 +48,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
               setError('Nenhuma pergunta válida foi encontrada na imagem. Tente outro arquivo.');
               return;
             }
-            setExtractedTitle(file.name);
-            onQuestionsExtracted(questions);
+            onQuestionsExtracted(questions, file.name);
           } catch (e) {
             setError('Erro ao extrair perguntas da imagem.');
             console.error(e);
@@ -70,7 +68,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
             const allQuestions: Question[] = [];
             const CHUNK_SIZE = 5;
 
-            let isFirstChunk = true;
+            let extractedTitle: string | undefined;
 
             for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum += CHUNK_SIZE) {
               let textChunk = '';
@@ -89,10 +87,8 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
               }
 
               if (textChunk.trim().length > 0) {
-                if (isFirstChunk) {
-                  const title = await generateTitleFromText(textChunk);
-                  setExtractedTitle(title);
-                  isFirstChunk = false;
+                if (extractedTitle === undefined) {
+                  extractedTitle = await generateTitleFromText(textChunk);
                 }
                 const questions = await extractQuestionsFromText(textChunk);
                 allQuestions.push(...questions);
@@ -103,7 +99,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
               setError('Nenhuma pergunta válida foi encontrada no PDF. Tente outro arquivo.');
               return;
             }
-            onQuestionsExtracted(allQuestions);
+            onQuestionsExtracted(allQuestions, extractedTitle);
           } catch (e) {
             setError('Erro ao extrair perguntas do PDF.');
             console.error(e);
@@ -122,45 +118,37 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
 
   return (
     <div className="pdf-uploader">
-      {extractedTitle ? (
-        <div className="extracted-title">
-          <strong>Tema</strong>
-          <span>{extractedTitle}</span>
+      <label className="file-picker">
+        <input
+          type="file"
+          onChange={handleFileChange}
+          accept=".pdf,.png,.jpg,.jpeg"
+          className="file-picker-input"
+          disabled={loading}
+        />
+        <span className="file-picker-icon" aria-hidden>📄</span>
+        <span className={`file-picker-text ${file ? 'has-file' : ''}`}>
+          {file ? file.name : 'Escolher PDF ou imagem'}
+        </span>
+      </label>
+      <button
+        onClick={handleExtractQuestions}
+        disabled={!file || loading}
+        className="extract-button"
+      >
+        {loading
+          ? progress
+            ? `Página ${progress.current} de ${progress.total}…`
+            : 'Extraindo…'
+          : 'Extrair Perguntas'}
+      </button>
+      {loading && progress && (
+        <div className="upload-progress" aria-hidden>
+          <div
+            className="upload-progress-fill"
+            style={{ width: `${(progress.current / progress.total) * 100}%` }}
+          />
         </div>
-      ) : (
-        <>
-          <label className="file-picker">
-            <input
-              type="file"
-              onChange={handleFileChange}
-              accept=".pdf,.png,.jpg,.jpeg"
-              className="file-picker-input"
-            />
-            <span className="file-picker-icon" aria-hidden>📄</span>
-            <span className={`file-picker-text ${file ? 'has-file' : ''}`}>
-              {file ? file.name : 'Escolher PDF ou imagem'}
-            </span>
-          </label>
-          <button
-            onClick={handleExtractQuestions}
-            disabled={!file || loading}
-            className="extract-button"
-          >
-            {loading
-              ? progress
-                ? `Página ${progress.current} de ${progress.total}…`
-                : 'Extraindo…'
-              : 'Extrair Perguntas'}
-          </button>
-          {loading && progress && (
-            <div className="upload-progress" aria-hidden>
-              <div
-                className="upload-progress-fill"
-                style={{ width: `${(progress.current / progress.total) * 100}%` }}
-              />
-            </div>
-          )}
-        </>
       )}
       {error && <p className="uploader-error">{error}</p>}
     </div>

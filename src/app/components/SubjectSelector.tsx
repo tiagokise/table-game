@@ -12,9 +12,63 @@ interface SubjectSelectorProps {
   onStartCustom: (questions: Question[]) => void;
 }
 
+interface ExtractedSet {
+  questions: Question[];
+  title: string | null;
+}
+
 export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelectorProps) {
   const [selected, setSelected] = useState<Subject | null>(null);
-  const [mode, setMode] = useState<'select' | 'custom'>('select');
+  const [mode, setMode] = useState<'select' | 'custom' | 'confirm'>('select');
+  const [extracted, setExtracted] = useState<ExtractedSet | null>(null);
+
+  const handleExtracted = (questions: Question[], title?: string) => {
+    setExtracted({ questions, title: title ?? null });
+    setMode('confirm');
+  };
+
+  if (mode === 'confirm' && extracted) {
+    const count = extracted.questions.length;
+    return (
+      <div className="subject-overlay">
+        <div className="subject-modal">
+          <header className="subject-header">
+            <h2>Pronto!</h2>
+            <p>
+              {count} pergunta{count === 1 ? '' : 's'} pronta{count === 1 ? '' : 's'} pra jogar.
+            </p>
+          </header>
+
+          {extracted.title && (
+            <div className="extracted-title">
+              <strong>Tema</strong>
+              <span>{extracted.title}</span>
+            </div>
+          )}
+
+          <div className="subject-actions">
+            <button
+              type="button"
+              className="subject-start subject-start--all"
+              onClick={() => {
+                setExtracted(null);
+                setMode('custom');
+              }}
+            >
+              ← Tentar outro arquivo
+            </button>
+            <button
+              type="button"
+              className="subject-start"
+              onClick={() => onStartCustom(extracted.questions)}
+            >
+              Começar Jogo
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (mode === 'custom') {
     return (
@@ -25,7 +79,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
             <p>Envie um PDF ou imagem e a IA cria as perguntas pra você.</p>
           </header>
 
-          <PdfUploader onQuestionsExtracted={onStartCustom} />
+          <PdfUploader onQuestionsExtracted={handleExtracted} />
 
           <div className="subject-actions">
             <button
