@@ -792,6 +792,98 @@ main.game-container {
   padding: 4px;
 }
 
+/* ===== Animação de rolagem do dado (fullscreen, igual ao moving) ===== */
+.dice.dice--rolling {
+  animation: dice-tumble 0.45s ease-in-out infinite;
+  transform-origin: center;
+  background: linear-gradient(135deg, var(--primary-hover), var(--pink-hover));
+  box-shadow:
+    0 14px 36px rgba(139, 92, 246, 0.55),
+    0 0 0 6px rgba(255, 255, 255, 0.65),
+    0 0 60px 10px color-mix(in srgb, var(--pink) 50%, transparent);
+}
+
+.dice.dice--rolling:disabled {
+  background: linear-gradient(135deg, var(--primary-hover), var(--pink-hover));
+  color: white;
+  cursor: progress;
+}
+
+.dice.dice--rolling .dice-image {
+  animation: dice-image-shake 0.18s linear infinite;
+}
+
+@keyframes dice-tumble {
+  0%   { transform: scale(1.05) rotate(-8deg); }
+  25%  { transform: scale(1.12) rotate(6deg); }
+  50%  { transform: scale(1.06) rotate(-4deg); }
+  75%  { transform: scale(1.14) rotate(10deg); }
+  100% { transform: scale(1.05) rotate(-8deg); }
+}
+
+@keyframes dice-image-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25%      { transform: translate(-1.5px, 1.5px) rotate(-6deg); }
+  50%      { transform: translate(1.5px, -1.5px) rotate(5deg); }
+  75%      { transform: translate(-1px, -1.5px) rotate(-3deg); }
+}
+
+/* Desbota sidebar enquanto rola */
+.game-container.dice-rolling .game-sidebar {
+  opacity: 0.35;
+  transition: opacity 0.25s ease;
+}
+
+/* Background gradient atrás do tabuleiro em foco */
+.game-container.dice-rolling::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    #fef7ff 0%,
+    #fce7f3 40%,
+    #e9d5ff 100%
+  );
+  animation: focus-bg-fade 0.35s ease forwards;
+}
+
+/* Tabuleiro vai pra fullscreen e dá zoom no centro (foco no dado) */
+.game-container.dice-rolling .board {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vmin;
+  height: 100vmin;
+  max-width: none;
+  max-height: none;
+  aspect-ratio: 1;
+  margin: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  z-index: 90;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.25s ease;
+  transform: translate(calc(50vw - 105vmin), calc(50vh - 105vmin)) scale(2.1);
+  box-shadow:
+    0 30px 80px -20px rgba(139, 92, 246, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.game-container.dice-rolling .board .cell {
+  filter: brightness(0.5) saturate(0.7);
+  transition: filter 0.35s ease;
+}
+
+/* Limpa o container central pra não competir com o dado */
+.game-container.dice-rolling .board .center-content-container {
+  border-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 .show-question-button {
   padding: 12px 24px;
   font-size: 1rem;

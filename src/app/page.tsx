@@ -37,6 +37,7 @@ export default function Home() {
   const [hasStarted, setHasStarted] = useState(false);
   const [triggeredSpecial, setTriggeredSpecial] = useState<{ position: number; type: SpecialCellType } | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isDiceRolling, setIsDiceRolling] = useState(false);
   const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const auxTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const { play: playSound, muted, toggleMute } = useSound();
@@ -65,9 +66,9 @@ export default function Home() {
   // };
 
   const handleRoll = (diceValue: number) => {
+    setIsDiceRolling(false);
     if (winner || gameState.isQuizVisible) return;
 
-    playSound('dice-roll');
     setDiceRoll(diceValue);
     const randomQuestion = activeQuestions[Math.floor(Math.random() * activeQuestions.length)];
 
@@ -222,6 +223,7 @@ export default function Home() {
     setHasStarted(false);
     setTriggeredSpecial(null);
     setShowConfetti(false);
+    setIsDiceRolling(false);
   };
 
   const handleStart = (subject: Subject | null) => {
@@ -259,7 +261,7 @@ export default function Home() {
   }, [currentPlayer.position]);
 
   return (
-    <main className={`game-container ${isMoving ? 'focus-mode' : ''}`}>
+    <main className={`game-container ${isMoving ? 'focus-mode' : ''} ${isDiceRolling ? 'dice-rolling' : ''}`}>
       {!hasStarted && <SubjectSelector onStart={handleStart} />}
       <aside className="game-sidebar">
         <div className="sidebar-header">
@@ -338,7 +340,15 @@ export default function Home() {
         triggeredSpecial={triggeredSpecial}
       >
         <PlayerComponent player={currentPlayer} isMoving={isMoving} />
-        <Dice onRoll={handleRoll} disabled={hasRolled || gameState.isQuizVisible} currentRoll={diceRoll} />
+        <Dice
+          onRoll={handleRoll}
+          onRollStart={() => {
+            setIsDiceRolling(true);
+            playSound('dice-roll');
+          }}
+          disabled={hasRolled || gameState.isQuizVisible || isMoving}
+          currentRoll={diceRoll}
+        />
         {hasRolled && !gameState.isQuizVisible && gameState.currentQuestion && (
           <button onClick={handleShowQuestion} className="show-question-button">
             Ver Pergunta

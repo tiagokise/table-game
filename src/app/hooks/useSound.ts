@@ -36,7 +36,7 @@ const FADE_OUT_MS = 180;
 const SOUND_MAX_DURATION_MS: Partial<Record<SoundId, number>> = {
   correct: 1100,
   portal: 1500,
-  'dice-roll': 1200,
+  'dice-roll': 1700,
 };
 
 const MUTE_STORAGE_KEY = 'tablegame:muted';
