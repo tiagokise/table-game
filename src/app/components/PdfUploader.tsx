@@ -43,8 +43,12 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
           try {
             const base64Image = (event.target.result as string).split(',')[1];
             const questions = await extractQuestionsFromImage(base64Image, file.type);
-            onQuestionsExtracted(questions);
+            if (questions.length === 0) {
+              setError('Nenhuma pergunta válida foi encontrada na imagem. Tente outro arquivo.');
+              return;
+            }
             setExtractedTitle(file.name);
+            onQuestionsExtracted(questions);
           } catch (e) {
             setError('Erro ao extrair perguntas da imagem.');
             console.error(e);
@@ -92,6 +96,10 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
               }
             }
 
+            if (allQuestions.length === 0) {
+              setError('Nenhuma pergunta válida foi encontrada no PDF. Tente outro arquivo.');
+              return;
+            }
             onQuestionsExtracted(allQuestions);
           } catch (e) {
             setError('Erro ao extrair perguntas do PDF.');

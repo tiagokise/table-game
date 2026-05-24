@@ -28,6 +28,25 @@ function parseJsonArray(raw: string): unknown[] {
   }
 }
 
+function isValidQuestion(value: unknown): value is Question {
+  if (typeof value !== 'object' || value === null) return false;
+  const obj = value as Record<string, unknown>;
+  if (typeof obj.question !== 'string' || obj.question.trim().length === 0) return false;
+  if (!Array.isArray(obj.options) || obj.options.length < 2) return false;
+  if (!obj.options.every((o) => typeof o === 'string' && o.trim().length > 0)) return false;
+  if (typeof obj.answer !== 'string') return false;
+  return (obj.options as string[]).includes(obj.answer);
+}
+
+function validateQuestions(items: unknown[]): Question[] {
+  const valid = items.filter(isValidQuestion);
+  const dropped = items.length - valid.length;
+  if (dropped > 0) {
+    console.warn(`Descartadas ${dropped} pergunta(s) malformada(s) de ${items.length} recebidas da IA.`);
+  }
+  return valid;
+}
+
 export async function extractQuestionsFromText(text: string): Promise<Question[]> {
   const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
@@ -40,7 +59,7 @@ export async function extractQuestionsFromText(text: string): Promise<Question[]
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return parseJsonArray(response.text()) as Question[];
+    return validateQuestions(parseJsonArray(response.text()));
   } catch (error) {
     console.error('Erro ao extrair perguntas:', error);
     return [];
@@ -65,7 +84,7 @@ export async function extractQuestionsFromImage(base64Image: string, mimeType: s
   try {
     const result = await model.generateContent([prompt, imagePart]);
     const response = await result.response;
-    return parseJsonArray(response.text()) as Question[];
+    return validateQuestions(parseJsonArray(response.text()));
   } catch (error) {
     console.error('Erro ao extrair perguntas da imagem:', error);
     return [];
