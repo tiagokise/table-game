@@ -8,7 +8,7 @@ function parseJsonArray(raw: string): unknown[] {
   const start = raw.indexOf('[');
   const end = raw.lastIndexOf(']');
   if (start === -1 || end === -1 || end < start) {
-    console.error('Nenhum JSON array encontrado na resposta:', raw);
+    console.warn('Nenhum JSON array encontrado na resposta:', raw);
     return [];
   }
   const slice = raw.substring(start, end + 1);
@@ -22,7 +22,7 @@ function parseJsonArray(raw: string): unknown[] {
       const parsed = JSON.parse(cleaned);
       return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
-      console.error('Falha ao parsear JSON da IA:', raw, error);
+      console.warn('Falha ao parsear JSON da IA:', raw, error);
       return [];
     }
   }
