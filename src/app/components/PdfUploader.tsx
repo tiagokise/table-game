@@ -21,6 +21,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [extractedTitle, setExtractedTitle] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -35,6 +36,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
 
     setLoading(true);
     setError(null);
+    setProgress(null);
 
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -73,6 +75,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
             for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum += CHUNK_SIZE) {
               let textChunk = '';
               const endPage = Math.min(pageNum + CHUNK_SIZE - 1, pdfDoc.numPages);
+              setProgress({ current: endPage, total: pdfDoc.numPages });
 
               for (let i = pageNum; i <= endPage; i++) {
                 const page = await pdfDoc.getPage(i);
@@ -106,6 +109,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
             console.error(e);
           } finally {
             setLoading(false);
+            setProgress(null);
           }
         }
       };
@@ -142,8 +146,20 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
             disabled={!file || loading}
             className="extract-button"
           >
-            {loading ? 'Extraindo…' : 'Extrair Perguntas'}
+            {loading
+              ? progress
+                ? `Página ${progress.current} de ${progress.total}…`
+                : 'Extraindo…'
+              : 'Extrair Perguntas'}
           </button>
+          {loading && progress && (
+            <div className="upload-progress" aria-hidden>
+              <div
+                className="upload-progress-fill"
+                style={{ width: `${(progress.current / progress.total) * 100}%` }}
+              />
+            </div>
+          )}
         </>
       )}
       {error && <p className="uploader-error">{error}</p>}
