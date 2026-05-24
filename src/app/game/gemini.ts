@@ -1,9 +1,34 @@
 // src/app/game/gemini.ts
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import type { Question } from './types';
 
 const genAI = new GoogleGenerativeAI(process.env.NEXT_GEMINI_API_KEY || '');
 
-export async function extractQuestionsFromText(text: string) {
+function parseJsonArray(raw: string): unknown[] {
+  const start = raw.indexOf('[');
+  const end = raw.lastIndexOf(']');
+  if (start === -1 || end === -1 || end < start) {
+    console.error('Nenhum JSON array encontrado na resposta:', raw);
+    return [];
+  }
+  const slice = raw.substring(start, end + 1);
+
+  try {
+    const parsed = JSON.parse(slice);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    try {
+      const cleaned = slice.replace(/,(\s*[\]}])/g, '$1');
+      const parsed = JSON.parse(cleaned);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error('Falha ao parsear JSON da IA:', raw, error);
+      return [];
+    }
+  }
+}
+
+export async function extractQuestionsFromText(text: string): Promise<Question[]> {
   const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const prompt = `
@@ -15,26 +40,14 @@ export async function extractQuestionsFromText(text: string) {
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const jsonText = response.text();
-
-    const jsonStartIndex = jsonText.indexOf('[');
-    const jsonEndIndex = jsonText.lastIndexOf(']');
-
-    if (jsonStartIndex !== -1 && jsonEndIndex !== -1) {
-      const jsonString = jsonText.substring(jsonStartIndex, jsonEndIndex + 1);
-      const questions = JSON.parse(jsonString);
-      return questions;
-    } else {
-      console.error("Nenhum JSON válido encontrado na resposta da IA:", jsonText);
-      return [];
-    }
+    return parseJsonArray(response.text()) as Question[];
   } catch (error) {
     console.error('Erro ao extrair perguntas:', error);
     return [];
   }
 }
 
-export async function extractQuestionsFromImage(base64Image: string, mimeType: string) {
+export async function extractQuestionsFromImage(base64Image: string, mimeType: string): Promise<Question[]> {
   const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const prompt = `
@@ -52,19 +65,7 @@ export async function extractQuestionsFromImage(base64Image: string, mimeType: s
   try {
     const result = await model.generateContent([prompt, imagePart]);
     const response = await result.response;
-    const jsonText = response.text();
-
-    const jsonStartIndex = jsonText.indexOf('[');
-    const jsonEndIndex = jsonText.lastIndexOf(']');
-
-    if (jsonStartIndex !== -1 && jsonEndIndex !== -1) {
-      const jsonString = jsonText.substring(jsonStartIndex, jsonEndIndex + 1);
-      const questions = JSON.parse(jsonString);
-      return questions;
-    } else {
-      console.error("Nenhum JSON válido encontrado na resposta da IA:", jsonText);
-      return [];
-    }
+    return parseJsonArray(response.text()) as Question[];
   } catch (error) {
     console.error('Erro ao extrair perguntas da imagem:', error);
     return [];
