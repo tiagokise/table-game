@@ -14,7 +14,6 @@ import { GameState, Question, Subject, SpecialCellType } from './game/types';
 import { useSound } from './hooks/useSound';
 
 const Board = dynamic(() => import('./components/Board'), { ssr: false });
-// const PdfUploaderDynamic = dynamic(() => import('./components/PdfUploader'), { ssr: false });
 
 const WINNING_POSITION = 35;
 const FEEDBACK_DURATION = 1500;
@@ -60,10 +59,6 @@ export default function Home() {
     }, delay);
     auxTimersRef.current.push(t);
   };
-
-  // const handleSetCustomQuestions = (newQuestions: Question[]) => {
-  //   setCustomQuestions(newQuestions);
-  // };
 
   const handleRoll = (diceValue: number) => {
     setIsDiceRolling(false);
@@ -231,6 +226,12 @@ export default function Home() {
     setHasStarted(true);
   };
 
+  const handleStartCustom = (newQuestions: Question[]) => {
+    setCustomQuestions(newQuestions);
+    setSelectedSubject(null);
+    setHasStarted(true);
+  };
+
   const currentPlayer = gameState.players[gameState.currentPlayerIndex];
   const hasRolled = gameState.diceValue !== null;
   const activeSubjectInfo = selectedSubject
@@ -262,7 +263,7 @@ export default function Home() {
 
   return (
     <main className={`game-container ${isMoving ? 'focus-mode' : ''} ${isDiceRolling ? 'dice-rolling' : ''}`}>
-      {!hasStarted && <SubjectSelector onStart={handleStart} />}
+      {!hasStarted && <SubjectSelector onStart={handleStart} onStartCustom={handleStartCustom} />}
       <aside className="game-sidebar">
         <div className="sidebar-header">
           <h1 className="sidebar-title">Table Game</h1>
@@ -276,9 +277,11 @@ export default function Home() {
                   : undefined
               }
             >
-              {activeSubjectInfo
-                ? `${activeSubjectInfo.emoji} ${activeSubjectInfo.label}`
-                : '🎲 Todos os assuntos'}
+              {customQuestions && customQuestions.length > 0
+                ? '📄 Perguntas personalizadas'
+                : activeSubjectInfo
+                  ? `${activeSubjectInfo.emoji} ${activeSubjectInfo.label}`
+                  : '🎲 Todos os assuntos'}
             </span>
           )}
         </div>
@@ -303,16 +306,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* <details className="uploader-details">
-          <summary className="uploader-summary">
-            <span>Perguntas Personalizadas</span>
-            <span className="chevron" aria-hidden>▾</span>
-          </summary>
-          <PdfUploaderDynamic
-            onQuestionsExtracted={handleSetCustomQuestions}
-          />
-        </details> */}
 
         <div className="sidebar-actions">
           <button

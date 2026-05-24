@@ -174,12 +174,12 @@ main.game-container {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   width: 100%;
-  max-width: 640px;
+  max-width: 760px;
   max-height: calc(100dvh - 48px);
-  padding: 28px;
+  padding: 22px 26px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 14px;
   overflow-y: auto;
   animation: quiz-in 0.3s ease;
 }
@@ -189,7 +189,7 @@ main.game-container {
 }
 
 .subject-header h2 {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 900;
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, var(--primary), var(--pink));
@@ -199,15 +199,15 @@ main.game-container {
 }
 
 .subject-header p {
-  margin-top: 6px;
-  font-size: 0.92rem;
+  margin-top: 4px;
+  font-size: 0.85rem;
   color: var(--text-muted);
 }
 
 .subject-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
 }
 
 .subject-chip {
@@ -215,8 +215,8 @@ main.game-container {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 16px 10px;
+  gap: 4px;
+  padding: 12px 8px;
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
   background-color: white;
@@ -240,8 +240,27 @@ main.game-container {
   box-shadow: 0 6px 18px color-mix(in srgb, var(--chip-color, var(--primary)) 35%, transparent);
 }
 
+.subject-chip--custom {
+  border-style: dashed;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary) 8%, white),
+    color-mix(in srgb, var(--pink) 8%, white)
+  );
+  grid-column: 1 / -1;
+}
+
+.subject-chip--custom:hover {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary) 16%, white),
+    color-mix(in srgb, var(--pink) 16%, white)
+  );
+  border-style: solid;
+}
+
 .subject-chip-emoji {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
 }
 
 .subject-chip-label {
@@ -250,14 +269,15 @@ main.game-container {
 
 .subject-actions {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  gap: 8px;
 }
 
 .subject-start {
-  padding: 14px 18px;
+  flex: 1;
+  padding: 12px 16px;
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: white;
   background: linear-gradient(135deg, var(--primary), var(--pink));
@@ -292,23 +312,48 @@ main.game-container {
 }
 
 @media (max-width: 768px) {
+  .subject-overlay {
+    padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
   .subject-modal {
-    padding: 20px;
-    gap: 16px;
+    padding: 14px;
+    gap: 10px;
+    max-height: 100dvh;
+    border-radius: var(--radius-md);
   }
   .subject-header h2 {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
+  }
+  .subject-header p {
+    margin-top: 2px;
+    font-size: 0.75rem;
   }
   .subject-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
   }
   .subject-chip {
-    padding: 12px 8px;
-    font-size: 0.85rem;
+    padding: 8px 4px;
+    gap: 4px;
+    font-size: 0.72rem;
+    border-width: 1.5px;
   }
   .subject-chip-emoji {
-    font-size: 1.35rem;
+    font-size: 1.15rem;
+  }
+  .subject-chip--custom {
+    padding: 10px 8px;
+    font-size: 0.78rem;
+  }
+  .subject-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .subject-start {
+    padding: 9px 14px;
+    font-size: 0.85rem;
   }
 }
 
@@ -928,46 +973,6 @@ main.game-container {
   box-shadow: 0 6px 20px rgba(251, 191, 36, 0.55);
 }
 
-/* ===== Uploader details (collapsible wrapper) ===== */
-.uploader-details {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background-color: var(--surface);
-  overflow: hidden;
-}
-
-.uploader-details[open] {
-  background-color: var(--surface-muted);
-}
-
-.uploader-summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  user-select: none;
-}
-
-.uploader-summary::-webkit-details-marker {
-  display: none;
-}
-
-.uploader-summary .chevron {
-  transition: transform 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.uploader-details[open] .uploader-summary .chevron {
-  transform: rotate(180deg);
-}
-
 /* ===== PDF Uploader ===== */
 .pdf-uploader {
   display: flex;
@@ -1306,11 +1311,6 @@ main.game-container {
     height: 5px;
   }
 
-  .uploader-summary {
-    padding: 10px 14px;
-    font-size: 0.75rem;
-  }
-
   .pdf-uploader {
     padding: 0 14px 14px 14px;
     gap: 8px;
@@ -1439,6 +1439,35 @@ main.game-container {
     width: 32px;
     height: 32px;
   }
+  .subject-modal {
+    padding: 12px;
+    gap: 8px;
+  }
+  .subject-header h2 {
+    font-size: 1.05rem;
+  }
+  .subject-header p {
+    margin-top: 0;
+    font-size: 0.7rem;
+  }
+  .subject-grid {
+    gap: 5px;
+  }
+  .subject-chip {
+    padding: 6px 4px;
+    font-size: 0.68rem;
+  }
+  .subject-chip-emoji {
+    font-size: 1rem;
+  }
+  .subject-chip--custom {
+    padding: 8px;
+    font-size: 0.72rem;
+  }
+  .subject-start {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
 }
 
 /* Landscape phones: keep desktop-like side-by-side */
@@ -1462,6 +1491,49 @@ main.game-container {
   .score-card-main {
     flex-direction: column;
     align-items: stretch;
+  }
+  .subject-overlay {
+    padding: 8px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+  .subject-modal {
+    padding: 10px 14px;
+    gap: 8px;
+    max-width: 560px;
+    max-height: 100dvh;
+  }
+  .subject-header h2 {
+    font-size: 1rem;
+  }
+  .subject-header p {
+    display: none;
+  }
+  .subject-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .subject-chip {
+    padding: 5px 4px;
+    gap: 2px;
+    font-size: 0.68rem;
+    border-width: 1.5px;
+  }
+  .subject-chip-emoji {
+    font-size: 0.95rem;
+  }
+  .subject-chip--custom {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+  }
+  .subject-actions {
+    flex-direction: row;
+    gap: 8px;
+  }
+  .subject-start {
+    flex: 1;
+    padding: 7px 12px;
+    font-size: 0.78rem;
   }
 }
 
