@@ -11,7 +11,7 @@ import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { SUBJECTS } from './game/subjects';
 import { BONUS_EXTRA_STEPS, getSpecialCell } from './game/board-config';
-import { GameState, Question, Subject, SpecialCellType } from './game/types';
+import { Difficulty, GameState, Question, Subject, SpecialCellType } from './game/types';
 import { useSound } from './hooks/useSound';
 
 const Board = dynamic(() => import('./components/Board'), { ssr: false });
@@ -34,6 +34,7 @@ export default function Home() {
   const [steppedCells, setSteppedCells] = useState<number[]>([]);
   const [landingCell, setLandingCell] = useState<number | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('medio');
   const [hasStarted, setHasStarted] = useState(false);
   const [triggeredSpecial, setTriggeredSpecial] = useState<{ position: number; type: SpecialCellType } | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -44,10 +45,15 @@ export default function Home() {
   const { play: playSound, muted, toggleMute } = useSound();
 
   const activeQuestions = useMemo(() => {
-    if (customQuestions && customQuestions.length > 0) return customQuestions;
-    if (selectedSubject) return questions.filter((q) => q.subject === selectedSubject);
-    return questions;
-  }, [customQuestions, selectedSubject]);
+    const base = customQuestions && customQuestions.length > 0
+      ? customQuestions
+      : selectedSubject
+        ? questions.filter((q) => q.subject === selectedSubject)
+        : questions;
+
+    const matching = base.filter((q) => !q.difficulty || q.difficulty === selectedDifficulty);
+    return matching.length > 0 ? matching : base;
+  }, [customQuestions, selectedSubject, selectedDifficulty]);
 
   const clearAuxTimers = () => {
     auxTimersRef.current.forEach(clearTimeout);
@@ -199,7 +205,7 @@ export default function Home() {
     finishMovement(position);
   };
 
-  const handleAnswer = (isCorrect: boolean) => {
+  const handleAnswer = (isCorrect: boolean, timedOut = false) => {
     const currentPlayer = gameState.players[gameState.currentPlayerIndex];
 
     if (!isCorrect && currentPlayer.hasSecondChance) {
@@ -213,7 +219,9 @@ export default function Home() {
         return { ...prev, players: newPlayers, isQuizVisible: false };
       });
       setFeedback({
-        message: 'Errou! Sua chance extra trouxe uma nova pergunta…',
+        message: timedOut
+          ? 'Tempo esgotado! Sua chance extra trouxe uma nova pergunta…'
+          : 'Errou! Sua chance extra trouxe uma nova pergunta…',
         isCorrect: false,
       });
       animationTimerRef.current = setTimeout(() => {
@@ -237,7 +245,11 @@ export default function Home() {
     playSound(isCorrect ? 'correct' : 'incorrect');
     setGameState((prev) => ({ ...prev, isQuizVisible: false }));
     setFeedback({
-      message: isCorrect ? 'Você respondeu corretamente!' : 'Você respondeu incorretamente!',
+      message: isCorrect
+        ? 'Você respondeu corretamente!'
+        : timedOut
+          ? 'Tempo esgotado!'
+          : 'Você respondeu incorretamente!',
       isCorrect,
     });
 
@@ -269,6 +281,7 @@ export default function Home() {
     setSteppedCells([]);
     setLandingCell(null);
     setSelectedSubject(null);
+    setSelectedDifficulty('medio');
     setHasStarted(false);
     setTriggeredSpecial(null);
     setShowConfetti(false);
@@ -276,14 +289,16 @@ export default function Home() {
     setCardChoicePending(null);
   };
 
-  const handleStart = (subject: Subject | null) => {
+  const handleStart = (subject: Subject | null, difficulty: Difficulty) => {
     setSelectedSubject(subject);
+    setSelectedDifficulty(difficulty);
     setHasStarted(true);
   };
 
-  const handleStartCustom = (newQuestions: Question[]) => {
+  const handleStartCustom = (newQuestions: Question[], difficulty: Difficulty) => {
     setCustomQuestions(newQuestions);
     setSelectedSubject(null);
+    setSelectedDifficulty(difficulty);
     setHasStarted(true);
   };
 
@@ -441,6 +456,7 @@ export default function Home() {
             question={gameState.currentQuestion}
             onAnswer={handleAnswer}
             hasSecondChance={currentPlayer.hasSecondChance}
+            difficulty={selectedDifficulty}
           />
         </div>
       )}

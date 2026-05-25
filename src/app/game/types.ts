@@ -10,11 +10,22 @@ export type Subject =
   | 'portugues'
   | 'cinema';
 
+export type Difficulty = 'facil' | 'medio' | 'dificil';
+
+export const DIFFICULTY_TIME_LIMITS: Record<Difficulty, number> = {
+  facil: 30,
+  medio: 20,
+  dificil: 10,
+};
+
+export const DEFAULT_DIFFICULTY: Difficulty = 'medio';
+
 export interface Question {
   question: string;
   options: string[];
   answer: string;
   subject?: Subject;
+  difficulty?: Difficulty;
 }
 
 export interface Player {

@@ -1,6 +1,8 @@
 // src/app/game/gemini.ts
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { Question } from './types';
+import type { Difficulty, Question } from './types';
+
+const DIFFICULTY_VALUES: readonly Difficulty[] = ['facil', 'medio', 'dificil'] as const;
 
 const genAI = new GoogleGenerativeAI(process.env.NEXT_GEMINI_API_KEY || '');
 
@@ -28,6 +30,22 @@ function parseJsonArray(raw: string): unknown[] {
   }
 }
 
+function normalizeDifficulty(value: unknown): Difficulty | undefined {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+  if (DIFFICULTY_VALUES.includes(normalized as Difficulty)) {
+    return normalized as Difficulty;
+  }
+  if (normalized === 'easy') return 'facil';
+  if (normalized === 'medium') return 'medio';
+  if (normalized === 'hard' || normalized === 'difficult') return 'dificil';
+  return undefined;
+}
+
 function isValidQuestion(value: unknown): value is Question {
   if (typeof value !== 'object' || value === null) return false;
   const obj = value as Record<string, unknown>;
@@ -35,7 +53,14 @@ function isValidQuestion(value: unknown): value is Question {
   if (!Array.isArray(obj.options) || obj.options.length < 2) return false;
   if (!obj.options.every((o) => typeof o === 'string' && o.trim().length > 0)) return false;
   if (typeof obj.answer !== 'string') return false;
-  return (obj.options as string[]).includes(obj.answer);
+  if (!(obj.options as string[]).includes(obj.answer)) return false;
+  const normalizedDifficulty = normalizeDifficulty(obj.difficulty);
+  if (normalizedDifficulty) {
+    obj.difficulty = normalizedDifficulty;
+  } else {
+    delete obj.difficulty;
+  }
+  return true;
 }
 
 function validateQuestions(items: unknown[]): Question[] {
@@ -52,7 +77,14 @@ export async function extractQuestionsFromText(text: string): Promise<Question[]
 
   const prompt = `
     Extraia perguntas e respostas do texto a seguir e formate-as como um array de objetos JSON.
-    Cada objeto deve ter as seguintes propriedades: "question", "options" (um array de 4 strings) e "answer" (uma das opções).
+    Cada objeto deve ter as seguintes propriedades:
+      - "question": o enunciado.
+      - "options": um array de 4 strings.
+      - "answer": uma das opções (texto exato).
+      - "difficulty": nível de dificuldade da pergunta, exatamente um destes valores: "facil", "medio" ou "dificil".
+        Use "facil" para perguntas de conhecimento básico, "medio" para perguntas de conhecimento intermediário
+        e "dificil" para perguntas que exigem domínio aprofundado ou raciocínio mais complexo.
+    Distribua as dificuldades de forma equilibrada quando possível.
     O texto é: "${text}"
   `;
 
@@ -71,7 +103,14 @@ export async function extractQuestionsFromImage(base64Image: string, mimeType: s
 
   const prompt = `
     Extraia perguntas e respostas da imagem a seguir e formate-as como um array de objetos JSON.
-    Cada objeto deve ter as seguintes propriedades: "question", "options" (um array de 4 strings) e "answer" (uma das opções).
+    Cada objeto deve ter as seguintes propriedades:
+      - "question": o enunciado.
+      - "options": um array de 4 strings.
+      - "answer": uma das opções (texto exato).
+      - "difficulty": nível de dificuldade da pergunta, exatamente um destes valores: "facil", "medio" ou "dificil".
+        Use "facil" para perguntas de conhecimento básico, "medio" para perguntas de conhecimento intermediário
+        e "dificil" para perguntas que exigem domínio aprofundado ou raciocínio mais complexo.
+    Distribua as dificuldades de forma equilibrada quando possível.
   `;
 
   const imagePart = {

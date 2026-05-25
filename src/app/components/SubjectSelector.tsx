@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { SUBJECTS } from '../game/subjects';
-import type { Subject, Question } from '../game/types';
+import type { Difficulty, Subject, Question } from '../game/types';
 
 const PdfUploader = dynamic(() => import('./PdfUploader'), { ssr: false });
 
 interface SubjectSelectorProps {
-  onStart: (subject: Subject | null) => void;
-  onStartCustom: (questions: Question[]) => void;
+  onStart: (subject: Subject | null, difficulty: Difficulty) => void;
+  onStartCustom: (questions: Question[], difficulty: Difficulty) => void;
 }
 
 interface ExtractedSet {
@@ -17,8 +17,15 @@ interface ExtractedSet {
   title: string | null;
 }
 
+const DIFFICULTY_OPTIONS: { id: Difficulty; label: string; emoji: string; time: number }[] = [
+  { id: 'facil', label: 'Fácil', emoji: '🟢', time: 30 },
+  { id: 'medio', label: 'Médio', emoji: '🟡', time: 20 },
+  { id: 'dificil', label: 'Difícil', emoji: '🔴', time: 10 },
+];
+
 export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelectorProps) {
   const [selected, setSelected] = useState<Subject | null>(null);
+  const [difficulty, setDifficulty] = useState<Difficulty>('medio');
   const [mode, setMode] = useState<'select' | 'custom' | 'confirm'>('select');
   const [extracted, setExtracted] = useState<ExtractedSet | null>(null);
 
@@ -60,7 +67,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
             <button
               type="button"
               className="subject-start"
-              onClick={() => onStartCustom(extracted.questions)}
+              onClick={() => onStartCustom(extracted.questions, difficulty)}
             >
               Começar Jogo
             </button>
@@ -132,11 +139,33 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
           </button>
         </div>
 
+        <section className="difficulty-section" aria-label="Nível de dificuldade">
+          <span className="difficulty-section-label">Nível de dificuldade · define o tempo por pergunta</span>
+          <div className="difficulty-options">
+            {DIFFICULTY_OPTIONS.map((opt) => {
+              const isActive = difficulty === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  className={`difficulty-option difficulty-${opt.id} ${isActive ? 'active' : ''}`}
+                  onClick={() => setDifficulty(opt.id)}
+                  aria-pressed={isActive}
+                >
+                  <span className="difficulty-option-emoji" aria-hidden>{opt.emoji}</span>
+                  <span className="difficulty-option-label">{opt.label}</span>
+                  <span className="difficulty-option-time">{opt.time}s</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
         <div className="subject-actions">
           <button
             type="button"
             className="subject-start subject-start--all"
-            onClick={() => onStart(null)}
+            onClick={() => onStart(null, difficulty)}
           >
             Jogar com todos os assuntos
           </button>
@@ -144,7 +173,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
             type="button"
             className="subject-start"
             disabled={selected === null}
-            onClick={() => onStart(selected)}
+            onClick={() => onStart(selected, difficulty)}
           >
             Começar Jogo
           </button>

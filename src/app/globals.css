@@ -273,6 +273,107 @@ main.game-container {
   gap: 8px;
 }
 
+.difficulty-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.difficulty-section-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.difficulty-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.difficulty-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  background: white;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.difficulty-option:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.difficulty-option.active {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.difficulty-option.difficulty-facil.active {
+  border-color: #34d399;
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.difficulty-option.difficulty-medio.active {
+  border-color: #fbbf24;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.difficulty-option.difficulty-dificil.active {
+  border-color: #f87171;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.difficulty-option-emoji {
+  font-size: 1.2rem;
+}
+
+.difficulty-option-label {
+  text-align: center;
+  line-height: 1.15;
+}
+
+.difficulty-option-time {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.difficulty-option.active .difficulty-option-time {
+  color: inherit;
+  opacity: 0.85;
+}
+
+@media (max-width: 768px) {
+  .difficulty-options {
+    gap: 6px;
+  }
+  .difficulty-option {
+    padding: 8px 4px;
+    font-size: 0.7rem;
+    border-width: 1.5px;
+  }
+  .difficulty-option-emoji {
+    font-size: 1rem;
+  }
+}
+
 .subject-start {
   flex: 1;
   padding: 12px 16px;
@@ -1832,6 +1933,93 @@ main.game-container {
   50% {
     box-shadow: 0 4px 16px rgba(236, 72, 153, 0.55);
   }
+}
+
+/* ===== Difficulty badge + timer ===== */
+.quiz-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.difficulty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 1.5px solid transparent;
+}
+
+.difficulty-badge.difficulty-facil {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.difficulty-badge.difficulty-medio {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border-color: #fbbf24;
+}
+
+.difficulty-badge.difficulty-dificil {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border-color: #f87171;
+}
+
+.quiz-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  border: 1.5px solid var(--border);
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.quiz-timer.is-low {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-color: #fca5a5;
+  animation: timer-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes timer-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+.quiz-timer-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.quiz-timer-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--pink) 100%);
+  border-radius: 999px;
+  transition: width 1s linear, background 0.3s ease;
+}
+
+.quiz-timer-bar-fill.is-low {
+  background: linear-gradient(90deg, #f87171 0%, #dc2626 100%);
 }
 
 /* ===== Second-chance banner inside quiz ===== */
