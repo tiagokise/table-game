@@ -9,6 +9,7 @@ interface Question {
 interface QuizProps {
   question: Question;
   onAnswer: (isCorrect: boolean) => void;
+  hasSecondChance?: boolean;
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -20,11 +21,16 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-export default function Quiz({ question, onAnswer }: QuizProps) {
+export default function Quiz({ question, onAnswer, hasSecondChance = false }: QuizProps) {
   const shuffledOptions = useMemo(() => shuffle(question.options), [question]);
 
   return (
     <div className="quiz">
+      {hasSecondChance && (
+        <div className="quiz-second-chance" aria-label="Chance extra ativa">
+          🎴 Se errar essa, você ganha uma nova pergunta
+        </div>
+      )}
       <div className="quiz-header">
         <h2>{question.question}</h2>
       </div>

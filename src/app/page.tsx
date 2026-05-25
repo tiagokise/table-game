@@ -437,7 +437,11 @@ export default function Home() {
 
       {gameState.isQuizVisible && gameState.currentQuestion && (
         <div className="quiz-overlay">
-          <Quiz question={gameState.currentQuestion} onAnswer={handleAnswer} />
+          <Quiz
+            question={gameState.currentQuestion}
+            onAnswer={handleAnswer}
+            hasSecondChance={currentPlayer.hasSecondChance}
+          />
         </div>
       )}
 
