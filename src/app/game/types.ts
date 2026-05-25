@@ -22,6 +22,7 @@ export interface Player {
   position: number;
   score: number;
   color: string;
+  hasSecondChance: boolean;
 }
 
 export interface GameState {
@@ -32,8 +33,9 @@ export interface GameState {
   diceValue: number | null;
 }
 
-export type SpecialCellType = 'bonus' | 'portal';
+export type SpecialCellType = 'bonus' | 'portal' | 'cards';
 
 export type SpecialCell =
   | { position: number; type: 'bonus' }
-  | { position: number; type: 'portal'; target: number };
+  | { position: number; type: 'portal'; target: number }
+  | { position: number; type: 'cards' };

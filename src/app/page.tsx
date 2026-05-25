@@ -6,6 +6,7 @@ import PlayerComponent from './components/Player';
 import Dice from './components/Dice';
 import Quiz from './components/Quiz';
 import SubjectSelector from './components/SubjectSelector';
+import CardChoice from './components/CardChoice';
 import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { SUBJECTS } from './game/subjects';
@@ -37,6 +38,7 @@ export default function Home() {
   const [triggeredSpecial, setTriggeredSpecial] = useState<{ position: number; type: SpecialCellType } | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isDiceRolling, setIsDiceRolling] = useState(false);
+  const [cardChoicePending, setCardChoicePending] = useState<{ position: number } | null>(null);
   const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const auxTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const { play: playSound, muted, toggleMute } = useSound();
@@ -119,6 +121,13 @@ export default function Home() {
           return;
         }
 
+        if (special?.type === 'cards' && targetPos < WINNING_POSITION) {
+          playSound('bonus');
+          setTriggeredSpecial({ position: targetPos, type: 'cards' });
+          setCardChoicePending({ position: targetPos });
+          return;
+        }
+
         if (special?.type === 'portal') {
           playSound('portal');
           setTriggeredSpecial({ position: targetPos, type: 'portal' });
@@ -173,9 +182,54 @@ export default function Home() {
     );
   };
 
+  const handleCardChoiceDone = (won: boolean) => {
+    const position = cardChoicePending?.position ?? gameState.players[gameState.currentPlayerIndex].position;
+    setCardChoicePending(null);
+    setTriggeredSpecial(null);
+    if (won) {
+      setGameState((prev) => {
+        const newPlayers = [...prev.players];
+        newPlayers[prev.currentPlayerIndex] = {
+          ...newPlayers[prev.currentPlayerIndex],
+          hasSecondChance: true,
+        };
+        return { ...prev, players: newPlayers };
+      });
+    }
+    finishMovement(position);
+  };
+
   const handleAnswer = (isCorrect: boolean) => {
+    const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+
+    if (!isCorrect && currentPlayer.hasSecondChance) {
+      playSound('incorrect');
+      setGameState((prev) => {
+        const newPlayers = [...prev.players];
+        newPlayers[prev.currentPlayerIndex] = {
+          ...newPlayers[prev.currentPlayerIndex],
+          hasSecondChance: false,
+        };
+        return { ...prev, players: newPlayers, isQuizVisible: false };
+      });
+      setFeedback({
+        message: 'Errou! Sua chance extra trouxe uma nova pergunta…',
+        isCorrect: false,
+      });
+      animationTimerRef.current = setTimeout(() => {
+        setFeedback(null);
+        const newQuestion = activeQuestions[Math.floor(Math.random() * activeQuestions.length)];
+        setGameState((prev) => ({
+          ...prev,
+          currentQuestion: newQuestion,
+          isQuizVisible: true,
+        }));
+      }, FEEDBACK_DURATION);
+      return;
+    }
+
     const diceValue = gameState.diceValue ?? 0;
-    const currentPosition = gameState.players[gameState.currentPlayerIndex].position;
+    const currentPosition = currentPlayer.position;
     const targetPosition = isCorrect
       ? Math.min(currentPosition + diceValue, WINNING_POSITION)
       : Math.max(currentPosition - diceValue, 0);
@@ -219,6 +273,7 @@ export default function Home() {
     setTriggeredSpecial(null);
     setShowConfetti(false);
     setIsDiceRolling(false);
+    setCardChoicePending(null);
   };
 
   const handleStart = (subject: Subject | null) => {
@@ -305,6 +360,11 @@ export default function Home() {
               />
             </div>
           </div>
+          {currentPlayer.hasSecondChance && (
+            <span className="second-chance-pill" aria-label="Chance extra disponível">
+              🎴 Chance extra
+            </span>
+          )}
         </section>
 
         <div className="sidebar-actions">
@@ -378,6 +438,12 @@ export default function Home() {
       {gameState.isQuizVisible && gameState.currentQuestion && (
         <div className="quiz-overlay">
           <Quiz question={gameState.currentQuestion} onAnswer={handleAnswer} />
+        </div>
+      )}
+
+      {cardChoicePending && (
+        <div className="quiz-overlay">
+          <CardChoice onDone={handleCardChoiceDone} />
         </div>
       )}
     </main>

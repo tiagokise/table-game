@@ -8,6 +8,8 @@ export const SPECIAL_CELLS: SpecialCell[] = [
   { position: 26, type: 'bonus' },
   { position: 9, type: 'portal', target: 16 },
   { position: 21, type: 'portal', target: 29 },
+  { position: 7, type: 'cards' },
+  { position: 24, type: 'cards' },
 ];
 
 export const SPECIAL_BY_POSITION: Record<number, SpecialCell> = SPECIAL_CELLS.reduce(

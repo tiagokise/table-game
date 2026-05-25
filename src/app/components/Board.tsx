@@ -2,6 +2,7 @@
 import React from 'react';
 import PlayerComponent from './Player'; // Import PlayerComponent to use its type
 import { getSpecialCell } from '../game/board-config';
+import type { SpecialCellType } from '../game/types';
 
 interface BoardProps {
   children: React.ReactNode;
@@ -11,7 +12,7 @@ interface BoardProps {
   landingCell?: number | null;
   focusX?: number;
   focusY?: number;
-  triggeredSpecial?: { position: number; type: 'bonus' | 'portal' } | null;
+  triggeredSpecial?: { position: number; type: SpecialCellType } | null;
 }
 
 const Board = ({
@@ -105,7 +106,7 @@ const Board = ({
               <span className="cell-path">{path}</span>
               {special && (
                 <span className="cell-special-icon" aria-hidden>
-                  {special.type === 'bonus' ? '⭐' : '🌀'}
+                  {special.type === 'bonus' ? '⭐' : special.type === 'portal' ? '🌀' : '🎴'}
                 </span>
               )}
               {isLanding && (
