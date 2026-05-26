@@ -40,6 +40,7 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [isDiceRolling, setIsDiceRolling] = useState(false);
   const [cardChoicePending, setCardChoicePending] = useState<{ position: number } | null>(null);
+  const [isHelpVisible, setIsHelpVisible] = useState(false);
   const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const auxTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const { play: playSound, muted, toggleMute } = useSound();
@@ -376,6 +377,15 @@ export default function Home() {
 
         <div className="sidebar-actions">
           <button
+            onClick={() => setIsHelpVisible(true)}
+            className="help-button"
+            aria-label="Ajuda"
+            type="button"
+          >
+            <span className="help-button-icon" aria-hidden>❓</span>
+            <span className="help-button-label">Ajuda</span>
+          </button>
+          <button
             onClick={toggleMute}
             className="sound-toggle"
             aria-label={muted ? 'Ativar som' : 'Silenciar'}
@@ -465,6 +475,55 @@ export default function Home() {
       {cardChoicePending && (
         <div className="quiz-overlay">
           <CardChoice onDone={handleCardChoiceDone} />
+        </div>
+      )}
+
+      {isHelpVisible && (
+        <div className="quiz-overlay" onClick={() => setIsHelpVisible(false)}>
+          <div className="quiz help-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="help-header">
+              <h2>Como Jogar</h2>
+              <button
+                className="help-close"
+                onClick={() => setIsHelpVisible(false)}
+                aria-label="Fechar"
+                type="button"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="help-content">
+              <section>
+                <h3>🎯 Objetivo</h3>
+                <p>Chegue à casa {WINNING_POSITION} respondendo perguntas corretamente.</p>
+              </section>
+              <section>
+                <h3>🎲 Como avançar</h3>
+                <ul>
+                  <li>Role o dado para receber uma pergunta.</li>
+                  <li><b>Acertou:</b> avança o número de casas do dado.</li>
+                  <li><b>Errou:</b> volta casas conforme a dificuldade.</li>
+                </ul>
+              </section>
+              <section>
+                <h3>✨ Casas especiais</h3>
+                <ul className="help-special-list">
+                  <li><span>⭐</span> <b>Bônus:</b> avança {BONUS_EXTRA_STEPS} casas extras.</li>
+                  <li><span>🌀</span> <b>Portal:</b> teleporta para outra casa.</li>
+                  <li><span>🎴</span> <b>Cartas:</b> minijogo para ganhar uma chance extra.</li>
+                  <li><span>🪤</span> <b>Penalidade:</b> volta {PENALTY_BACK_STEPS} casas.</li>
+                </ul>
+              </section>
+              <section>
+                <h3>⏱️ Dificuldade</h3>
+                <ul>
+                  <li><b>Fácil:</b> 30s, sem penalidade ao errar.</li>
+                  <li><b>Médio:</b> 20s, volta metade do dado ao errar.</li>
+                  <li><b>Difícil:</b> 10s, volta o valor do dado ao errar.</li>
+                </ul>
+              </section>
+            </div>
+          </div>
         </div>
       )}
     </main>
