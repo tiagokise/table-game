@@ -10,7 +10,7 @@ import CardChoice from './components/CardChoice';
 import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { SUBJECTS } from './game/subjects';
-import { BONUS_EXTRA_STEPS, GOAL_POSITION, GRID_COLS, GRID_ROWS, PATH, getPathCell, getSpecialCell } from './game/board-config';
+import { BONUS_EXTRA_STEPS, GOAL_POSITION, GRID_COLS, GRID_ROWS, PATH, PENALTY_BACK_STEPS, getPathCell, getSpecialCell } from './game/board-config';
 import { Difficulty, GameState, Question, Subject, SpecialCellType, getDifficultyPenalty } from './game/types';
 import { useSound } from './hooks/useSound';
 
@@ -131,6 +131,17 @@ export default function Home() {
           playSound('bonus');
           setTriggeredSpecial({ position: targetPos, type: 'cards' });
           setCardChoicePending({ position: targetPos });
+          return;
+        }
+
+        if (special?.type === 'penalty') {
+          playSound('incorrect');
+          setTriggeredSpecial({ position: targetPos, type: 'penalty' });
+          scheduleAux(() => {
+            setTriggeredSpecial(null);
+            const penaltyTarget = Math.max(targetPos - PENALTY_BACK_STEPS, 0);
+            animatePlayer(targetPos, penaltyTarget, 'backward', true);
+          }, SPECIAL_HOLD_DURATION);
           return;
         }
 

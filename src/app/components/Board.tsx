@@ -75,7 +75,7 @@ const Board = ({
               )}
               {special && (
                 <span className="cell-special-icon" aria-hidden>
-                  {special.type === 'bonus' ? '⭐' : special.type === 'portal' ? '🌀' : '🎴'}
+                  {special.type === 'bonus' ? '⭐' : special.type === 'portal' ? '🌀' : special.type === 'cards' ? '🎴' : '🪤'}
                 </span>
               )}
               {isLanding && (

@@ -50,9 +50,10 @@ export interface GameState {
   diceValue: number | null;
 }
 
-export type SpecialCellType = 'bonus' | 'portal' | 'cards';
+export type SpecialCellType = 'bonus' | 'portal' | 'cards' | 'penalty';
 
 export type SpecialCell =
   | { position: number; type: 'bonus' }
   | { position: number; type: 'portal'; target: number }
-  | { position: number; type: 'cards' };
+  | { position: number; type: 'cards' }
+  | { position: number; type: 'penalty' };

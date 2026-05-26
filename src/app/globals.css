@@ -1801,6 +1801,42 @@ main.game-container {
   animation: cards-icon-wiggle 2.6s ease-in-out infinite;
 }
 
+.cell-special--penalty,
+.cell:nth-child(4n+1).cell-special--penalty,
+.cell:nth-child(4n+2).cell-special--penalty,
+.cell:nth-child(4n+3).cell-special--penalty,
+.cell:nth-child(4n+4).cell-special--penalty {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(254, 202, 202, 0.35), transparent 60%),
+    linear-gradient(135deg, #7f1d1d 0%, #991b1b 45%, #b91c1c 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(254, 202, 202, 0.85),
+    0 0 22px 4px rgba(220, 38, 38, 0.55);
+  animation: special-pulse-penalty 2.4s ease-in-out infinite;
+}
+
+.cell-special--penalty .cell-special-icon {
+  animation: penalty-icon-shake 2.2s ease-in-out infinite;
+}
+
+@keyframes special-pulse-penalty {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 3px rgba(254, 202, 202, 0.8),
+      0 0 18px 3px rgba(220, 38, 38, 0.45);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 3px rgba(255, 255, 255, 1),
+      0 0 28px 7px rgba(220, 38, 38, 0.75);
+  }
+}
+
+@keyframes penalty-icon-shake {
+  0%, 100% { transform: scale(1) rotate(-8deg); }
+  50% { transform: scale(1.12) rotate(8deg); }
+}
+
 @keyframes special-pulse-cards {
   0%, 100% {
     box-shadow:

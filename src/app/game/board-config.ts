@@ -1,6 +1,7 @@
 import { SpecialCell } from './types';
 
 export const BONUS_EXTRA_STEPS = 2;
+export const PENALTY_BACK_STEPS = 2;
 export const GRID_COLS = 12;
 export const GRID_ROWS = 11;
 
@@ -34,9 +35,11 @@ export const SPECIAL_CELLS: SpecialCell[] = [
   { position: 15, type: 'cards' },
   { position: 20, type: 'portal', target: 35 },
   { position: 29, type: 'bonus' },
+  { position: 42, type: 'penalty' },
   { position: 46, type: 'portal', target: 64 },
   { position: 53, type: 'cards' },
   { position: 57, type: 'bonus' },
+  { position: 70, type: 'penalty' },
 ];
 
 export const SPECIAL_BY_POSITION: Record<number, SpecialCell> = SPECIAL_CELLS.reduce(
