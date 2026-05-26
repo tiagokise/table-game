@@ -1,7 +1,8 @@
 import { SpecialCell } from './types';
 
 export const BONUS_EXTRA_STEPS = 2;
-export const GRID_SIZE = 12;
+export const GRID_COLS = 12;
+export const GRID_ROWS = 11;
 
 export interface PathCell {
   row: number;
@@ -22,7 +23,6 @@ export const PATH: PathCell[] = [
   ...range(12).map((i) => ({ row: 9, col: i + 1 })),
   { row: 10, col: 12 },
   ...range(12).map((i) => ({ row: 11, col: 12 - i })),
-  { row: 12, col: 1 },
 ];
 
 export const GOAL_POSITION = PATH.length - 1;

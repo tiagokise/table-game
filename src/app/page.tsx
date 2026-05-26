@@ -10,7 +10,7 @@ import CardChoice from './components/CardChoice';
 import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { SUBJECTS } from './game/subjects';
-import { BONUS_EXTRA_STEPS, GOAL_POSITION, GRID_SIZE, PATH, getPathCell, getSpecialCell } from './game/board-config';
+import { BONUS_EXTRA_STEPS, GOAL_POSITION, GRID_COLS, GRID_ROWS, PATH, getPathCell, getSpecialCell } from './game/board-config';
 import { Difficulty, GameState, Question, Subject, SpecialCellType, getDifficultyPenalty } from './game/types';
 import { useSound } from './hooks/useSound';
 
@@ -312,8 +312,8 @@ export default function Home() {
   const cameraFocus = useMemo(() => {
     const cell = getPathCell(currentPlayer.position) ?? PATH[0];
     return {
-      x: ((cell.col - 0.5) / GRID_SIZE) * 100,
-      y: ((cell.row - 0.5) / GRID_SIZE) * 100,
+      x: ((cell.col - 0.5) / GRID_COLS) * 100,
+      y: ((cell.row - 0.5) / GRID_ROWS) * 100,
     };
   }, [currentPlayer.position]);
 

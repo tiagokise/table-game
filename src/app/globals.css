@@ -544,11 +544,11 @@ main.game-container {
 .board {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: repeat(12, 1fr);
+  grid-template-rows: repeat(11, 1fr);
   width: auto;
   height: 100%;
-  max-width: min(90vh, 100%);
-  aspect-ratio: 1;
+  max-width: min(calc(90vh * 12 / 11), 100%);
+  aspect-ratio: 12 / 11;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
