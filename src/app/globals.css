@@ -609,6 +609,7 @@ main.game-container {
   box-shadow: var(--shadow-lg);
   flex-wrap: wrap;
   max-width: 100%;
+  position: relative;
 }
 
 /* ===== Player token ===== */
@@ -943,15 +944,26 @@ main.game-container {
   padding: 4px;
 }
 
-/* ===== Animação de rolagem do dado (fullscreen, igual ao moving) ===== */
+/* ===== Animação de rolagem do dado (fullscreen, centralizado) ===== */
 .dice.dice--rolling {
-  animation: dice-tumble 0.45s ease-in-out infinite;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 95;
+  min-width: 0;
+  min-height: 0;
+  width: 200px;
+  height: 200px;
+  padding: 0;
+  border-radius: 32px;
+  animation: dice-tumble 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   transform-origin: center;
   background: linear-gradient(135deg, var(--primary-hover), var(--pink-hover));
   box-shadow:
-    0 14px 36px rgba(139, 92, 246, 0.55),
-    0 0 0 6px rgba(255, 255, 255, 0.65),
-    0 0 60px 10px color-mix(in srgb, var(--pink) 50%, transparent);
+    0 30px 80px rgba(139, 92, 246, 0.6),
+    0 0 0 8px rgba(255, 255, 255, 0.75),
+    0 0 160px 40px color-mix(in srgb, var(--pink) 55%, transparent);
+  will-change: transform;
 }
 
 .dice.dice--rolling:disabled {
@@ -961,22 +973,28 @@ main.game-container {
 }
 
 .dice.dice--rolling .dice-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 18px;
+  padding: 10px;
   animation: dice-image-shake 0.18s linear infinite;
+  transform-origin: center;
 }
 
 @keyframes dice-tumble {
-  0%   { transform: scale(1.05) rotate(-8deg); }
-  25%  { transform: scale(1.12) rotate(6deg); }
-  50%  { transform: scale(1.06) rotate(-4deg); }
-  75%  { transform: scale(1.14) rotate(10deg); }
-  100% { transform: scale(1.05) rotate(-8deg); }
+  0%   { transform: translate(-50%, -50%) scale(0.6) rotate(0deg); }
+  12%  { transform: translate(-50%, -50%) scale(1.05) rotate(-90deg); }
+  35%  { transform: translate(-50%, -50%) scale(1.0)  rotate(220deg); }
+  60%  { transform: translate(-50%, -50%) scale(1.08) rotate(420deg); }
+  85%  { transform: translate(-50%, -50%) scale(1.02) rotate(620deg); }
+  100% { transform: translate(-50%, -50%) scale(1.0)  rotate(720deg); }
 }
 
 @keyframes dice-image-shake {
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25%      { transform: translate(-1.5px, 1.5px) rotate(-6deg); }
-  50%      { transform: translate(1.5px, -1.5px) rotate(5deg); }
-  75%      { transform: translate(-1px, -1.5px) rotate(-3deg); }
+  25%      { transform: translate(-2px, 2px) rotate(-6deg); }
+  50%      { transform: translate(2px, -2px) rotate(5deg); }
+  75%      { transform: translate(-1.5px, -2px) rotate(-3deg); }
 }
 
 /* Desbota sidebar enquanto rola */
@@ -1005,8 +1023,6 @@ main.game-container {
 .game-container.dice-rolling .game-bottom-bar {
   position: relative;
   z-index: 90;
-  transform: scale(1.05);
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   box-shadow:
     0 30px 80px -20px rgba(139, 92, 246, 0.4),
     0 0 0 2px rgba(255, 255, 255, 0.8);
