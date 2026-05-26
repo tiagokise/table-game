@@ -1,7 +1,6 @@
 // components/Board.tsx
 import React from 'react';
-import PlayerComponent from './Player'; // Import PlayerComponent to use its type
-import { getSpecialCell, GOAL_POSITION } from '../game/board-config';
+import { PATH, getSpecialCell, GOAL_POSITION } from '../game/board-config';
 import type { SpecialCellType } from '../game/types';
 
 interface BoardProps {
@@ -25,43 +24,6 @@ const Board = ({
   focusY = 50,
   triggeredSpecial = null,
 }: BoardProps) => {
-
-  const getPerimeterCells = () => {
-    const cells = [];
-    let pathIndex = 1;
-
-    // Top row
-    for (let i = 0; i < 10; i++) {
-      cells.push({ path: pathIndex++, row: 1, col: i + 1 });
-    }
-    // Right column
-    for (let i = 1; i < 10; i++) {
-      cells.push({ path: pathIndex++, row: i + 1, col: 10 });
-    }
-    // Bottom row
-    for (let i = 8; i >= 0; i--) {
-      cells.push({ path: pathIndex++, row: 10, col: i + 1 });
-    }
-    // Left column
-    for (let i = 8; i > 0; i--) {
-      cells.push({ path: pathIndex++, row: i + 1, col: 1 });
-    }
-    return cells;
-  };
-
-  const perimeterCells = getPerimeterCells();
-  
-  // Separate players from other children (like the Dice)
-  const players: React.ReactNode[] = [];
-  const otherChildren: React.ReactNode[] = [];
-  React.Children.forEach(children, (child) => {
-    if (React.isValidElement(child) && typeof child.type === 'function' && child.type.name === PlayerComponent.name) {
-      players.push(child);
-    } else {
-      otherChildren.push(child);
-    }
-  });
-
   const burstColor = moveDirection === 'backward' ? '#fca5a5' : '#86efac';
   const boardClassName = [
     'board',
@@ -79,8 +41,9 @@ const Board = ({
   return (
     <div className="board-container">
       <div className={boardClassName} style={boardStyle}>
-        {perimeterCells.map(({ path, row, col }) => {
-          const position = path - 1;
+        {PATH.map((cell, i) => {
+          const position = i;
+          const pathNumber = i + 1;
           const isStepped = steppedCells.includes(position);
           const isLanding = landingCell === position;
           const special = getSpecialCell(position);
@@ -88,7 +51,7 @@ const Board = ({
           const isGoal = position === GOAL_POSITION;
           const cellClassName = [
             'cell',
-            path % 2 === 0 ? 'even' : '',
+            pathNumber % 2 === 0 ? 'even' : '',
             isStepped ? 'cell-stepped' : '',
             isStepped && moveDirection === 'forward' ? 'cell-stepped--forward' : '',
             isStepped && moveDirection === 'backward' ? 'cell-stepped--backward' : '',
@@ -101,14 +64,14 @@ const Board = ({
             .join(' ');
           return (
             <div
-              key={path}
+              key={pathNumber}
               className={cellClassName}
-              style={{ gridRow: row, gridColumn: col }}
+              style={{ gridRow: cell.row, gridColumn: cell.col }}
             >
               {isGoal ? (
                 <span className="cell-goal-flag" aria-label="Linha de chegada">🏁</span>
               ) : (
-                <span className="cell-path">{path}</span>
+                <span className="cell-path">{pathNumber}</span>
               )}
               {special && (
                 <span className="cell-special-icon" aria-hidden>
@@ -124,13 +87,7 @@ const Board = ({
             </div>
           );
         })}
-        <div
-          className="center-content-container"
-          style={{ gridRow: '2 / 10', gridColumn: '2 / 10' }}
-        >
-          {otherChildren}
-        </div>
-        {players}
+        {children}
       </div>
     </div>
   );

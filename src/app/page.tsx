@@ -10,7 +10,7 @@ import CardChoice from './components/CardChoice';
 import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { SUBJECTS } from './game/subjects';
-import { BONUS_EXTRA_STEPS, GOAL_POSITION, getSpecialCell } from './game/board-config';
+import { BONUS_EXTRA_STEPS, GOAL_POSITION, GRID_SIZE, PATH, getPathCell, getSpecialCell } from './game/board-config';
 import { Difficulty, GameState, Question, Subject, SpecialCellType, getDifficultyPenalty } from './game/types';
 import { useSound } from './hooks/useSound';
 
@@ -310,25 +310,10 @@ export default function Home() {
     : null;
 
   const cameraFocus = useMemo(() => {
-    const pos = currentPlayer.position;
-    let row = 1;
-    let col = 1;
-    if (pos >= 0 && pos <= 9) {
-      row = 1;
-      col = pos + 1;
-    } else if (pos >= 10 && pos <= 18) {
-      row = pos - 10 + 2;
-      col = 10;
-    } else if (pos >= 19 && pos <= 27) {
-      row = 10;
-      col = 10 - (pos - 18);
-    } else if (pos >= 28 && pos <= 35) {
-      row = 10 - (pos - 27);
-      col = 1;
-    }
+    const cell = getPathCell(currentPlayer.position) ?? PATH[0];
     return {
-      x: (col - 0.5) * 10,
-      y: (row - 0.5) * 10,
+      x: ((cell.col - 0.5) / GRID_SIZE) * 100,
+      y: ((cell.row - 0.5) / GRID_SIZE) * 100,
     };
   }, [currentPlayer.position]);
 
@@ -394,36 +379,40 @@ export default function Home() {
         </div>
       </aside>
 
-      <Board
-        isMoving={isMoving}
-        moveDirection={moveDirection}
-        steppedCells={steppedCells}
-        landingCell={landingCell}
-        focusX={cameraFocus.x}
-        focusY={cameraFocus.y}
-        triggeredSpecial={triggeredSpecial}
-      >
-        <PlayerComponent player={currentPlayer} isMoving={isMoving} />
-        <Dice
-          onRoll={handleRoll}
-          onRollStart={() => {
-            setIsDiceRolling(true);
-            playSound('dice-roll');
-          }}
-          disabled={hasRolled || gameState.isQuizVisible || isMoving}
-          currentRoll={diceRoll}
-        />
-        {currentPlayer.hasSecondChance && (
-          <span className="second-chance-pill" aria-label="Chance extra disponível">
-            🎴 Chance extra
-          </span>
-        )}
-        {hasRolled && !gameState.isQuizVisible && gameState.currentQuestion && (
-          <button onClick={handleShowQuestion} className="show-question-button">
-            Ver Pergunta
-          </button>
-        )}
-      </Board>
+      <div className="game-board-area">
+        <Board
+          isMoving={isMoving}
+          moveDirection={moveDirection}
+          steppedCells={steppedCells}
+          landingCell={landingCell}
+          focusX={cameraFocus.x}
+          focusY={cameraFocus.y}
+          triggeredSpecial={triggeredSpecial}
+        >
+          <PlayerComponent player={currentPlayer} isMoving={isMoving} />
+        </Board>
+        <div className="game-bottom-bar">
+          <Dice
+            onRoll={handleRoll}
+            onRollStart={() => {
+              setIsDiceRolling(true);
+              playSound('dice-roll');
+            }}
+            disabled={hasRolled || gameState.isQuizVisible || isMoving}
+            currentRoll={diceRoll}
+          />
+          {currentPlayer.hasSecondChance && (
+            <span className="second-chance-pill" aria-label="Chance extra disponível">
+              🎴 Chance extra
+            </span>
+          )}
+          {hasRolled && !gameState.isQuizVisible && gameState.currentQuestion && (
+            <button onClick={handleShowQuestion} className="show-question-button">
+              Ver Pergunta
+            </button>
+          )}
+        </div>
+      </div>
 
       {feedback && (
         <div className="quiz-overlay">
