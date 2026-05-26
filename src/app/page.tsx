@@ -10,13 +10,13 @@ import CardChoice from './components/CardChoice';
 import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { SUBJECTS } from './game/subjects';
-import { BONUS_EXTRA_STEPS, getSpecialCell } from './game/board-config';
-import { Difficulty, GameState, Question, Subject, SpecialCellType } from './game/types';
+import { BONUS_EXTRA_STEPS, GOAL_POSITION, getSpecialCell } from './game/board-config';
+import { Difficulty, GameState, Question, Subject, SpecialCellType, getDifficultyPenalty } from './game/types';
 import { useSound } from './hooks/useSound';
 
 const Board = dynamic(() => import('./components/Board'), { ssr: false });
 
-const WINNING_POSITION = 35;
+const WINNING_POSITION = GOAL_POSITION;
 const FEEDBACK_DURATION = 1500;
 const STEP_DURATION = 480;
 const CELL_STEP_DURATION = 520;
@@ -238,9 +238,10 @@ export default function Home() {
 
     const diceValue = gameState.diceValue ?? 0;
     const currentPosition = currentPlayer.position;
+    const penalty = getDifficultyPenalty(selectedDifficulty, diceValue);
     const targetPosition = isCorrect
       ? Math.min(currentPosition + diceValue, WINNING_POSITION)
-      : Math.max(currentPosition - diceValue, 0);
+      : Math.max(currentPosition - penalty, 0);
 
     playSound(isCorrect ? 'correct' : 'incorrect');
     setGameState((prev) => ({ ...prev, isQuizVisible: false }));
@@ -375,11 +376,6 @@ export default function Home() {
               />
             </div>
           </div>
-          {currentPlayer.hasSecondChance && (
-            <span className="second-chance-pill" aria-label="Chance extra disponível">
-              🎴 Chance extra
-            </span>
-          )}
         </section>
 
         <div className="sidebar-actions">
@@ -417,6 +413,11 @@ export default function Home() {
           disabled={hasRolled || gameState.isQuizVisible || isMoving}
           currentRoll={diceRoll}
         />
+        {currentPlayer.hasSecondChance && (
+          <span className="second-chance-pill" aria-label="Chance extra disponível">
+            🎴 Chance extra
+          </span>
+        )}
         {hasRolled && !gameState.isQuizVisible && gameState.currentQuestion && (
           <button onClick={handleShowQuestion} className="show-question-button">
             Ver Pergunta

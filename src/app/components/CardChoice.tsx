@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 interface CardChoiceProps {
   onDone: (won: boolean) => void;
@@ -8,8 +8,17 @@ interface CardChoiceProps {
 
 const CARD_COUNT = 3;
 
+const pickRandomIndex = () => {
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    return buf[0] % CARD_COUNT;
+  }
+  return Math.floor(Math.random() * CARD_COUNT);
+};
+
 export default function CardChoice({ onDone }: CardChoiceProps) {
-  const winningIndex = useMemo(() => Math.floor(Math.random() * CARD_COUNT), []);
+  const [winningIndex] = useState<number>(pickRandomIndex);
   const [picked, setPicked] = useState<number | null>(null);
 
   const revealed = picked !== null;

@@ -20,6 +20,12 @@ export const DIFFICULTY_TIME_LIMITS: Record<Difficulty, number> = {
 
 export const DEFAULT_DIFFICULTY: Difficulty = 'medio';
 
+export const getDifficultyPenalty = (difficulty: Difficulty, diceValue: number): number => {
+  if (difficulty === 'facil') return 0;
+  if (difficulty === 'medio') return Math.floor(diceValue / 2);
+  return diceValue;
+};
+
 export interface Question {
   question: string;
   options: string[];

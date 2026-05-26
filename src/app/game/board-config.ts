@@ -1,6 +1,7 @@
 import { SpecialCell } from './types';
 
 export const BONUS_EXTRA_STEPS = 2;
+export const GOAL_POSITION = 35;
 
 export const SPECIAL_CELLS: SpecialCell[] = [
   { position: 4, type: 'bonus' },

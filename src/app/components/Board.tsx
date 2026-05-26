@@ -1,7 +1,7 @@
 // components/Board.tsx
 import React from 'react';
 import PlayerComponent from './Player'; // Import PlayerComponent to use its type
-import { getSpecialCell } from '../game/board-config';
+import { getSpecialCell, GOAL_POSITION } from '../game/board-config';
 import type { SpecialCellType } from '../game/types';
 
 interface BoardProps {
@@ -85,6 +85,7 @@ const Board = ({
           const isLanding = landingCell === position;
           const special = getSpecialCell(position);
           const isSpecialTriggered = triggeredSpecial?.position === position;
+          const isGoal = position === GOAL_POSITION;
           const cellClassName = [
             'cell',
             path % 2 === 0 ? 'even' : '',
@@ -94,6 +95,7 @@ const Board = ({
             isLanding ? 'cell-landing' : '',
             special ? `cell-special cell-special--${special.type}` : '',
             isSpecialTriggered ? 'cell-special--triggered' : '',
+            isGoal ? 'cell-goal' : '',
           ]
             .filter(Boolean)
             .join(' ');
@@ -103,7 +105,11 @@ const Board = ({
               className={cellClassName}
               style={{ gridRow: row, gridColumn: col }}
             >
-              <span className="cell-path">{path}</span>
+              {isGoal ? (
+                <span className="cell-goal-flag" aria-label="Linha de chegada">🏁</span>
+              ) : (
+                <span className="cell-path">{path}</span>
+              )}
               {special && (
                 <span className="cell-special-icon" aria-hidden>
                   {special.type === 'bonus' ? '⭐' : special.type === 'portal' ? '🌀' : '🎴'}
