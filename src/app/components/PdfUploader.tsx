@@ -292,20 +292,32 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
         />
       </div>
 
-      <label className="file-picker">
-        <input
-          type="file"
-          onChange={handleFileChange}
-          accept=".pdf,.png,.jpg,.jpeg"
-          multiple
-          className="file-picker-input"
-          disabled={loading}
-        />
-        <span className="file-picker-icon" aria-hidden>📄</span>
-        <span className={`file-picker-text ${files.length > 0 ? 'has-file' : ''}`}>
-          {fileLabel}
-        </span>
-      </label>
+      <div className="extract-divider" aria-hidden>
+        <span>ou anexe um arquivo</span>
+      </div>
+
+      <div className={`extract-source ${hasFile ? 'has-file' : ''}`}>
+        <div className="extract-source-heading">
+          <span className="extract-source-title">Extrair de PDF ou imagem</span>
+          <span className="extract-source-hint">
+            Envie um arquivo e a IA gera perguntas direto do conteúdo.
+          </span>
+        </div>
+        <label className="file-picker">
+          <input
+            type="file"
+            onChange={handleFileChange}
+            accept=".pdf,.png,.jpg,.jpeg"
+            multiple
+            className="file-picker-input"
+            disabled={loading}
+          />
+          <span className="file-picker-icon" aria-hidden>📄</span>
+          <span className={`file-picker-text ${hasFile ? 'has-file' : ''}`}>
+            {fileLabel}
+          </span>
+        </label>
+      </div>
 
       <button
         onClick={handleGenerate}
