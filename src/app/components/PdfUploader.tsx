@@ -14,7 +14,6 @@ import {
   Question,
   SchoolLevel,
   SCHOOL_LEVELS,
-  DEFAULT_SCHOOL_LEVEL,
   Materia,
   MATERIAS,
   getMateriasForLevel,
@@ -25,8 +24,22 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
+export interface AppendBannerInfo {
+  count: number;
+  title: string;
+}
+
 interface PdfUploaderProps {
   onQuestionsExtracted: (questions: Question[], title?: string) => void;
+  schoolLevel: SchoolLevel;
+  onSchoolLevelChange: (next: SchoolLevel) => void;
+  materia: Materia | '';
+  onMateriaChange: (next: Materia | '') => void;
+  subjectFocus: string;
+  onSubjectFocusChange: (next: string) => void;
+  files: File[];
+  onFilesChange: (next: File[]) => void;
+  appendBanner?: AppendBannerInfo;
 }
 
 type ImageProgress = { kind: 'image'; current: number; total: number };
@@ -56,18 +69,25 @@ const labelForLevel = (id: SchoolLevel): string =>
 const labelForMateria = (id: Materia | ''): string | undefined =>
   id ? MATERIAS.find((m) => m.id === id)?.label : undefined;
 
-const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
-  const [files, setFiles] = useState<File[]>([]);
-  const [schoolLevel, setSchoolLevel] = useState<SchoolLevel>(DEFAULT_SCHOOL_LEVEL);
-  const [materia, setMateria] = useState<Materia | ''>('');
-  const [subjectFocus, setSubjectFocus] = useState('');
+const PdfUploader = ({
+  onQuestionsExtracted,
+  schoolLevel,
+  onSchoolLevelChange,
+  materia,
+  onMateriaChange,
+  subjectFocus,
+  onSubjectFocusChange,
+  files,
+  onFilesChange,
+  appendBanner,
+}: PdfUploaderProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      setFiles(Array.from(event.target.files));
+      onFilesChange(Array.from(event.target.files));
       setError(null);
     }
   };
@@ -81,12 +101,13 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
   const isSinglePdf = files.length === 1 && files[0].type === 'application/pdf';
   const canSubmit = hasFile || hasFocus || hasMateria;
   const materiaLabel = hasMateria ? labelForMateria(materia) : undefined;
+  const isAppending = !!appendBanner;
 
   const handleLevelChange = (nextLevel: SchoolLevel) => {
-    setSchoolLevel(nextLevel);
+    onSchoolLevelChange(nextLevel);
     const stillValid = getMateriasForLevel(nextLevel).some((m) => m.id === materia);
     if (!stillValid && materia !== '') {
-      setMateria('');
+      onMateriaChange('');
     }
   };
 
@@ -229,8 +250,24 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
     return 'Gerando perguntas…';
   })();
 
+  const generateButtonLabel = loading
+    ? progressLabel ?? 'Gerando…'
+    : isAppending
+      ? 'Gerar mais perguntas'
+      : 'Gerar Perguntas';
+
   return (
     <div className="pdf-uploader">
+      {appendBanner && (
+        <div className="append-banner" role="status">
+          <span className="append-banner-icon" aria-hidden>➕</span>
+          <span className="append-banner-text">
+            Adicionando ao quiz <strong>{appendBanner.title}</strong> ({appendBanner.count}{' '}
+            pergunta{appendBanner.count === 1 ? '' : 's'} já criada{appendBanner.count === 1 ? '' : 's'})
+          </span>
+        </div>
+      )}
+
       <div className="custom-form-field">
         <label className="custom-form-label" htmlFor="custom-school-level">
           Nível escolar
@@ -259,7 +296,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
           className="custom-form-select"
           value={materia}
           onChange={(e) => {
-            setMateria(e.target.value as Materia | '');
+            onMateriaChange(e.target.value as Materia | '');
             if (error) setError(null);
           }}
           disabled={loading}
@@ -284,7 +321,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
           placeholder="Ex.: Equações do 2º grau, Revolução Francesa…"
           value={subjectFocus}
           onChange={(e) => {
-            setSubjectFocus(e.target.value);
+            onSubjectFocusChange(e.target.value);
             if (error) setError(null);
           }}
           disabled={loading}
@@ -324,7 +361,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
         disabled={!canSubmit || loading}
         className="extract-button"
       >
-        {loading ? progressLabel ?? 'Gerando…' : 'Gerar Perguntas'}
+        {generateButtonLabel}
       </button>
 
       {loading && progress && progress.kind !== 'topic' && (
