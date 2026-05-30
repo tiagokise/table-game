@@ -366,7 +366,16 @@ main.game-container {
   font-variant-numeric: tabular-nums;
 }
 
-.difficulty-option.active .difficulty-option-time {
+.difficulty-option-board {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.difficulty-option.active .difficulty-option-time,
+.difficulty-option.active .difficulty-option-board {
   color: inherit;
   opacity: 0.85;
 }
@@ -565,12 +574,12 @@ main.game-container {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: repeat(11, 1fr);
+  grid-template-columns: repeat(var(--board-cols, 12), 1fr);
+  grid-template-rows: repeat(var(--board-rows, 11), 1fr);
   width: auto;
   height: 100%;
-  max-width: min(calc(90vh * 12 / 11), 100%);
-  aspect-ratio: 12 / 11;
+  max-width: min(calc(90vh * var(--board-cols, 12) / var(--board-rows, 11)), 100%);
+  aspect-ratio: var(--board-cols, 12) / var(--board-rows, 11);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: var(--shadow-lg);

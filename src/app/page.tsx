@@ -10,13 +10,12 @@ import CardChoice from './components/CardChoice';
 import { initialGameState } from './game/game-state';
 import { questions } from './game/questions';
 import { SUBJECTS } from './game/subjects';
-import { BONUS_EXTRA_STEPS, GOAL_POSITION, GRID_COLS, GRID_ROWS, PATH, PENALTY_BACK_STEPS, getPathCell, getSpecialCell } from './game/board-config';
+import { BONUS_EXTRA_STEPS, PENALTY_BACK_STEPS, getBoardConfig } from './game/board-config';
 import { Difficulty, GameState, Question, Subject, SpecialCellType, getDifficultyPenalty } from './game/types';
 import { useSound } from './hooks/useSound';
 
 const Board = dynamic(() => import('./components/Board'), { ssr: false });
 
-const WINNING_POSITION = GOAL_POSITION;
 const FEEDBACK_DURATION = 1500;
 const STEP_DURATION = 480;
 const CELL_STEP_DURATION = 520;
@@ -44,6 +43,9 @@ export default function Home() {
   const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const auxTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const { play: playSound, muted, toggleMute } = useSound();
+
+  const boardConfig = useMemo(() => getBoardConfig(selectedDifficulty), [selectedDifficulty]);
+  const WINNING_POSITION = boardConfig.goalPosition;
 
   const activeQuestions = useMemo(() => {
     const base = customQuestions && customQuestions.length > 0
@@ -112,7 +114,7 @@ export default function Home() {
       animationTimerRef.current = null;
       setLandingCell(targetPos);
 
-      const special = direction === 'forward' ? getSpecialCell(targetPos) : null;
+      const special = direction === 'forward' ? boardConfig.specialByPosition[targetPos] : null;
 
       scheduleAux(() => {
         setLandingCell(null);
@@ -322,12 +324,12 @@ export default function Home() {
     : null;
 
   const cameraFocus = useMemo(() => {
-    const cell = getPathCell(currentPlayer.position) ?? PATH[0];
+    const cell = boardConfig.path[currentPlayer.position] ?? boardConfig.path[0];
     return {
-      x: ((cell.col - 0.5) / GRID_COLS) * 100,
-      y: ((cell.row - 0.5) / GRID_ROWS) * 100,
+      x: ((cell.col - 0.5) / boardConfig.cols) * 100,
+      y: ((cell.row - 0.5) / boardConfig.rows) * 100,
     };
-  }, [currentPlayer.position]);
+  }, [currentPlayer.position, boardConfig]);
 
   return (
     <main className={`game-container ${isMoving ? 'focus-mode' : ''} ${isDiceRolling ? 'dice-rolling' : ''}`}>
@@ -402,6 +404,7 @@ export default function Home() {
 
       <div className="game-board-area">
         <Board
+          boardConfig={boardConfig}
           isMoving={isMoving}
           moveDirection={moveDirection}
           steppedCells={steppedCells}
@@ -410,7 +413,7 @@ export default function Home() {
           focusY={cameraFocus.y}
           triggeredSpecial={triggeredSpecial}
         >
-          <PlayerComponent player={currentPlayer} isMoving={isMoving} />
+          <PlayerComponent player={currentPlayer} path={boardConfig.path} isMoving={isMoving} />
         </Board>
         <div className="game-bottom-bar">
           <Dice

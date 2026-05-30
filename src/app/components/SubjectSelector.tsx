@@ -17,10 +17,10 @@ interface ExtractedSet {
   title: string | null;
 }
 
-const DIFFICULTY_OPTIONS: { id: Difficulty; label: string; emoji: string; time: number }[] = [
-  { id: 'facil', label: 'Fácil', emoji: '🟢', time: 30 },
-  { id: 'medio', label: 'Médio', emoji: '🟡', time: 20 },
-  { id: 'dificil', label: 'Difícil', emoji: '🔴', time: 10 },
+const DIFFICULTY_OPTIONS: { id: Difficulty; label: string; emoji: string; time: number; boardLabel: string }[] = [
+  { id: 'facil', label: 'Fácil', emoji: '🟢', time: 30, boardLabel: 'Pequeno' },
+  { id: 'medio', label: 'Médio', emoji: '🟡', time: 20, boardLabel: 'Médio' },
+  { id: 'dificil', label: 'Difícil', emoji: '🔴', time: 10, boardLabel: 'Grande' },
 ];
 
 export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelectorProps) {
@@ -140,7 +140,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
         </div>
 
         <section className="difficulty-section" aria-label="Nível de dificuldade">
-          <span className="difficulty-section-label">Nível de dificuldade · define o tempo por pergunta</span>
+          <span className="difficulty-section-label">Nível de dificuldade · define tamanho do tabuleiro e tempo por pergunta</span>
           <div className="difficulty-options">
             {DIFFICULTY_OPTIONS.map((opt) => {
               const isActive = difficulty === opt.id;
@@ -154,6 +154,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
                 >
                   <span className="difficulty-option-emoji" aria-hidden>{opt.emoji}</span>
                   <span className="difficulty-option-label">{opt.label}</span>
+                  <span className="difficulty-option-board">{opt.boardLabel}</span>
                   <span className="difficulty-option-time">{opt.time}s</span>
                 </button>
               );

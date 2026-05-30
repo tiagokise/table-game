@@ -1,9 +1,10 @@
 // components/Board.tsx
 import React from 'react';
-import { PATH, getSpecialCell, GOAL_POSITION } from '../game/board-config';
+import type { BoardConfig } from '../game/board-config';
 import type { SpecialCellType } from '../game/types';
 
 interface BoardProps {
+  boardConfig: BoardConfig;
   children: React.ReactNode;
   isMoving?: boolean;
   moveDirection?: 'forward' | 'backward' | null;
@@ -15,6 +16,7 @@ interface BoardProps {
 }
 
 const Board = ({
+  boardConfig,
   children,
   isMoving = false,
   moveDirection = null,
@@ -36,19 +38,21 @@ const Board = ({
   const boardStyle = {
     ['--focus-x' as string]: focusX,
     ['--focus-y' as string]: focusY,
+    ['--board-cols' as string]: boardConfig.cols,
+    ['--board-rows' as string]: boardConfig.rows,
   } as React.CSSProperties;
 
   return (
     <div className="board-container">
       <div className={boardClassName} style={boardStyle}>
-        {PATH.map((cell, i) => {
+        {boardConfig.path.map((cell, i) => {
           const position = i;
           const pathNumber = i + 1;
           const isStepped = steppedCells.includes(position);
           const isLanding = landingCell === position;
-          const special = getSpecialCell(position);
+          const special = boardConfig.specialByPosition[position];
           const isSpecialTriggered = triggeredSpecial?.position === position;
-          const isGoal = position === GOAL_POSITION;
+          const isGoal = position === boardConfig.goalPosition;
           const cellClassName = [
             'cell',
             pathNumber % 2 === 0 ? 'even' : '',

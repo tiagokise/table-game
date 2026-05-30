@@ -1,16 +1,17 @@
 // components/Player.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Player } from '../game/types';
-import { getPathCell, PATH } from '../game/board-config';
+import type { PathCell } from '../game/board-config';
 
 interface PlayerProps {
   player: Player;
+  path: PathCell[];
   isMoving?: boolean;
 }
 
 const HOP_DURATION = 460;
 
-const PlayerComponent = ({ player, isMoving = false }: PlayerProps) => {
+const PlayerComponent = ({ player, path, isMoving = false }: PlayerProps) => {
   const [hopping, setHopping] = useState(false);
   const prevPosRef = useRef(player.position);
 
@@ -22,7 +23,7 @@ const PlayerComponent = ({ player, isMoving = false }: PlayerProps) => {
     return () => clearTimeout(timer);
   }, [player.position]);
 
-  const cell = getPathCell(player.position) ?? PATH[0];
+  const cell = path[player.position] ?? path[0];
 
   const style: React.CSSProperties = {
     gridRowStart: cell.row,
