@@ -66,7 +66,7 @@ const findSchoolLevelId = (label?: string): SchoolLevel => {
   return SCHOOL_LEVELS.find((l) => l.label === label)?.id ?? DEFAULT_SCHOOL_LEVEL;
 };
 
-type Mode = 'difficulty' | 'subject' | 'custom' | 'confirm';
+type Mode = 'difficulty' | 'subject' | 'custom' | 'confirm' | 'saved';
 
 export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelectorProps) {
   const [selected, setSelected] = useState<Subject | null>(null);
@@ -152,9 +152,13 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
     const confirmed = window.confirm(`Apagar o quiz "${quiz.title}"?`);
     if (!confirmed) return;
     deleteSavedQuiz(quiz.id);
-    setSavedQuizzes(loadSavedQuizzes());
+    const remaining = loadSavedQuizzes();
+    setSavedQuizzes(remaining);
     if (currentQuizId === quiz.id) {
       resetCustomFlow();
+    }
+    if (mode === 'saved' && remaining.length === 0) {
+      setMode('subject');
     }
   };
 
@@ -246,48 +250,6 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
             <p>Envie um PDF/imagem ou descreva o assunto — a IA cria as perguntas.</p>
           </header>
 
-          {savedQuizzes.length > 0 && !isAppending && (
-            <section className="saved-quiz-list" aria-label="Quizzes salvos">
-              <h3 className="saved-quiz-list-title">Quizzes salvos</h3>
-              <ul className="saved-quiz-items">
-                {savedQuizzes.map((quiz) => {
-                  const meta = [
-                    `${quiz.questions.length} pergunta${quiz.questions.length === 1 ? '' : 's'}`,
-                    quiz.context.schoolLevel,
-                    quiz.context.materia,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ');
-                  return (
-                    <li key={quiz.id} className="saved-quiz-card">
-                      <button
-                        type="button"
-                        className="saved-quiz-card-main"
-                        onClick={() => handleLoadSaved(quiz)}
-                        disabled={isGenerating}
-                      >
-                        <span className="saved-quiz-card-icon" aria-hidden>📚</span>
-                        <span className="saved-quiz-card-body">
-                          <span className="saved-quiz-card-title">{quiz.title}</span>
-                          <span className="saved-quiz-card-meta">{meta}</span>
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        className="saved-quiz-delete"
-                        aria-label={`Apagar quiz ${quiz.title}`}
-                        onClick={() => handleDeleteSaved(quiz)}
-                        disabled={isGenerating}
-                      >
-                        🗑
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          )}
-
           <PdfUploader
             onQuestionsExtracted={handleExtracted}
             schoolLevel={formSchoolLevel}
@@ -317,6 +279,70 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
               disabled={isGenerating}
             >
               {isAppending ? '← Cancelar' : '← Voltar aos assuntos'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'saved') {
+    return (
+      <div className="subject-overlay">
+        <div className="subject-modal">
+          <header className="subject-header">
+            <h2>Quizzes Salvos</h2>
+            <p>Escolha um quiz para jogar agora.</p>
+          </header>
+
+          {savedQuizzes.length === 0 ? (
+            <div className="saved-empty">
+              Você ainda não tem quizzes salvos. Crie um em &quot;Perguntas Personalizadas&quot;.
+            </div>
+          ) : (
+            <ul className="saved-quiz-items">
+              {savedQuizzes.map((quiz) => {
+                const meta = [
+                  `${quiz.questions.length} pergunta${quiz.questions.length === 1 ? '' : 's'}`,
+                  quiz.context.schoolLevel,
+                  quiz.context.materia,
+                ]
+                  .filter(Boolean)
+                  .join(' · ');
+                return (
+                  <li key={quiz.id} className="saved-quiz-card">
+                    <button
+                      type="button"
+                      className="saved-quiz-card-main"
+                      onClick={() => handleLoadSaved(quiz)}
+                    >
+                      <span className="saved-quiz-card-icon" aria-hidden>📚</span>
+                      <span className="saved-quiz-card-body">
+                        <span className="saved-quiz-card-title">{quiz.title}</span>
+                        <span className="saved-quiz-card-meta">{meta}</span>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="saved-quiz-delete"
+                      aria-label={`Apagar quiz ${quiz.title}`}
+                      onClick={() => handleDeleteSaved(quiz)}
+                    >
+                      🗑
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <div className="subject-actions">
+            <button
+              type="button"
+              className="subject-start subject-start--all"
+              onClick={() => setMode('subject')}
+            >
+              ← Voltar aos assuntos
             </button>
           </div>
         </div>
@@ -377,6 +403,19 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
               <span className="subject-chip-emoji" aria-hidden>📄</span>
               <span className="subject-chip-label">Perguntas Personalizadas</span>
             </button>
+            {savedQuizzes.length > 0 && (
+              <button
+                type="button"
+                className="subject-chip subject-chip--saved"
+                style={{ ['--chip-color' as string]: '#f59e0b' }}
+                onClick={() => setMode('saved')}
+              >
+                <span className="subject-chip-emoji" aria-hidden>📚</span>
+                <span className="subject-chip-label">
+                  Salvos ({savedQuizzes.length})
+                </span>
+              </button>
+            )}
           </div>
 
           <div className="subject-actions">
