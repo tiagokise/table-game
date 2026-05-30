@@ -12,13 +12,12 @@ export type Subject =
 
 export type Difficulty = 'facil' | 'medio' | 'dificil';
 
-export type SchoolLevel = 'fundamental1' | 'fundamental2' | 'medio' | 'superior';
+export type SchoolLevel = 'fundamental1' | 'fundamental2' | 'medio';
 
 export const SCHOOL_LEVELS: { id: SchoolLevel; label: string }[] = [
   { id: 'fundamental1', label: 'Fundamental I (1º–5º ano)' },
   { id: 'fundamental2', label: 'Fundamental II (6º–9º ano)' },
   { id: 'medio', label: 'Ensino Médio' },
-  { id: 'superior', label: 'Ensino Superior / Vestibular' },
 ];
 
 export const DEFAULT_SCHOOL_LEVEL: SchoolLevel = 'medio';
@@ -39,7 +38,7 @@ export type Materia =
   | 'sociologia';
 
 const FUND_LEVELS: SchoolLevel[] = ['fundamental1', 'fundamental2'];
-const MEDIO_LEVELS: SchoolLevel[] = ['medio', 'superior'];
+const MEDIO_LEVELS: SchoolLevel[] = ['medio'];
 const ALL_LEVELS: SchoolLevel[] = [...FUND_LEVELS, ...MEDIO_LEVELS];
 
 export const MATERIAS: { id: Materia; label: string; levels: SchoolLevel[] }[] = [
