@@ -76,6 +76,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
   const [currentQuizId, setCurrentQuizId] = useState<string | null>(null);
   const [isAppending, setIsAppending] = useState(false);
   const [savedQuizzes, setSavedQuizzes] = useState<SavedQuiz[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Lifted form state (controls PdfUploader)
   const [formSchoolLevel, setFormSchoolLevel] = useState<SchoolLevel>(DEFAULT_SCHOOL_LEVEL);
@@ -263,6 +264,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
                         type="button"
                         className="saved-quiz-card-main"
                         onClick={() => handleLoadSaved(quiz)}
+                        disabled={isGenerating}
                       >
                         <span className="saved-quiz-card-icon" aria-hidden>📚</span>
                         <span className="saved-quiz-card-body">
@@ -275,6 +277,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
                         className="saved-quiz-delete"
                         aria-label={`Apagar quiz ${quiz.title}`}
                         onClick={() => handleDeleteSaved(quiz)}
+                        disabled={isGenerating}
                       >
                         🗑
                       </button>
@@ -296,6 +299,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
             files={formFiles}
             onFilesChange={setFormFiles}
             appendBanner={appendBanner}
+            onLoadingChange={setIsGenerating}
           />
 
           <div className="subject-actions">
@@ -310,6 +314,7 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
                   setMode('subject');
                 }
               }}
+              disabled={isGenerating}
             >
               {isAppending ? '← Cancelar' : '← Voltar aos assuntos'}
             </button>

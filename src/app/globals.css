@@ -1645,9 +1645,15 @@ main.game-container {
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.saved-quiz-delete:hover {
+.saved-quiz-delete:hover:not(:disabled) {
   background: color-mix(in srgb, var(--danger) 12%, white);
   color: var(--danger);
+}
+
+.saved-quiz-card-main:disabled,
+.saved-quiz-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ===== Append banner ===== */

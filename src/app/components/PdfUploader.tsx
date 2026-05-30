@@ -1,7 +1,7 @@
 // components/PdfUploader.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { pdfjs } from 'react-pdf';
 import {
   extractQuestionsFromText,
@@ -40,6 +40,7 @@ interface PdfUploaderProps {
   files: File[];
   onFilesChange: (next: File[]) => void;
   appendBanner?: AppendBannerInfo;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
 type ImageProgress = { kind: 'image'; current: number; total: number };
@@ -80,10 +81,15 @@ const PdfUploader = ({
   files,
   onFilesChange,
   appendBanner,
+  onLoadingChange,
 }: PdfUploaderProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
