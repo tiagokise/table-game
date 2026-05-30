@@ -215,7 +215,9 @@ export default function SubjectSelector({ onStart, onStartCustom }: SubjectSelec
               className="subject-start subject-start--all"
               onClick={() => {
                 resetCustomFlow();
-                setMode('custom');
+                setSelected(null);
+                setDifficulty(null);
+                setMode('difficulty');
               }}
             >
               ← Começar um quiz novo
