@@ -284,115 +284,165 @@ main.game-container {
   gap: 8px;
 }
 
-.difficulty-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.difficulty-section-label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.difficulty-options {
+.difficulty-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 12px;
 }
 
-.difficulty-option {
+.difficulty-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 10px 6px;
-  border-radius: var(--radius-sm);
+  align-items: stretch;
+  gap: 10px;
+  padding: 14px 12px;
+  border-radius: var(--radius-md);
   border: 2px solid var(--border);
   background: white;
   font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
   color: var(--text);
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
 
-.difficulty-option:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.difficulty-option.active {
+.difficulty-card:hover {
+  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
 }
 
-.difficulty-option.difficulty-facil.active {
+.difficulty-card.difficulty-facil:hover {
   border-color: #34d399;
-  background: #d1fae5;
-  color: #065f46;
+  background: #ecfdf5;
 }
 
-.difficulty-option.difficulty-medio.active {
+.difficulty-card.difficulty-medio:hover {
   border-color: #fbbf24;
-  background: #fef3c7;
-  color: #92400e;
+  background: #fffbeb;
 }
 
-.difficulty-option.difficulty-dificil.active {
+.difficulty-card.difficulty-dificil:hover {
   border-color: #f87171;
-  background: #fee2e2;
-  color: #991b1b;
+  background: #fef2f2;
 }
 
-.difficulty-option-emoji {
+.difficulty-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.difficulty-card-emoji {
   font-size: 1.2rem;
 }
 
-.difficulty-option-label {
-  text-align: center;
-  line-height: 1.15;
+.difficulty-card-svg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px;
+  background: var(--surface-muted);
+  border-radius: var(--radius-sm);
 }
 
-.difficulty-option-time {
-  font-size: 0.7rem;
+.board-silhouette {
+  width: 100%;
+  height: auto;
+  max-height: 140px;
+  display: block;
+}
+
+.difficulty-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
-.difficulty-option-board {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.subject-step-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.difficulty-option.active .difficulty-option-time,
-.difficulty-option.active .difficulty-option-board {
-  color: inherit;
-  opacity: 0.85;
+.subject-step-back {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s ease;
+}
+
+.subject-step-back:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.subject-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--chip-color, var(--border));
+  background: color-mix(in srgb, var(--chip-color, var(--primary)) 12%, white);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 @media (max-width: 768px) {
-  .difficulty-options {
-    gap: 6px;
+  .difficulty-cards {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
-  .difficulty-option {
-    padding: 8px 4px;
-    font-size: 0.7rem;
-    border-width: 1.5px;
+  .difficulty-card {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px;
+    gap: 12px;
   }
 
-  .difficulty-option-emoji {
-    font-size: 1rem;
+  .difficulty-card-title {
+    flex: 0 0 auto;
+    flex-direction: column;
+    font-size: 0.9rem;
+    min-width: 64px;
+  }
+
+  .difficulty-card-svg {
+    flex: 1;
+    padding: 4px;
+  }
+
+  .board-silhouette {
+    max-height: 80px;
+  }
+
+  .difficulty-card-meta {
+    flex: 0 0 auto;
+    flex-direction: column;
+    font-size: 0.72rem;
+    gap: 2px;
+  }
+
+  .difficulty-card-meta > span:nth-child(2) {
+    display: none;
   }
 }
 
