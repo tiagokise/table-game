@@ -12,6 +12,55 @@ export type Subject =
 
 export type Difficulty = 'facil' | 'medio' | 'dificil';
 
+export type SchoolLevel = 'fundamental1' | 'fundamental2' | 'medio' | 'superior';
+
+export const SCHOOL_LEVELS: { id: SchoolLevel; label: string }[] = [
+  { id: 'fundamental1', label: 'Fundamental I (1º–5º ano)' },
+  { id: 'fundamental2', label: 'Fundamental II (6º–9º ano)' },
+  { id: 'medio', label: 'Ensino Médio' },
+  { id: 'superior', label: 'Ensino Superior / Vestibular' },
+];
+
+export const DEFAULT_SCHOOL_LEVEL: SchoolLevel = 'medio';
+
+export type Materia =
+  | 'portugues'
+  | 'matematica'
+  | 'ciencias'
+  | 'biologia'
+  | 'fisica'
+  | 'quimica'
+  | 'historia'
+  | 'geografia'
+  | 'arte'
+  | 'educacao-fisica'
+  | 'ingles'
+  | 'filosofia'
+  | 'sociologia';
+
+const FUND_LEVELS: SchoolLevel[] = ['fundamental1', 'fundamental2'];
+const MEDIO_LEVELS: SchoolLevel[] = ['medio', 'superior'];
+const ALL_LEVELS: SchoolLevel[] = [...FUND_LEVELS, ...MEDIO_LEVELS];
+
+export const MATERIAS: { id: Materia; label: string; levels: SchoolLevel[] }[] = [
+  { id: 'arte', label: 'Arte', levels: ALL_LEVELS },
+  { id: 'biologia', label: 'Biologia', levels: MEDIO_LEVELS },
+  { id: 'ciencias', label: 'Ciências', levels: FUND_LEVELS },
+  { id: 'educacao-fisica', label: 'Educação Física', levels: ALL_LEVELS },
+  { id: 'filosofia', label: 'Filosofia', levels: MEDIO_LEVELS },
+  { id: 'fisica', label: 'Física', levels: MEDIO_LEVELS },
+  { id: 'geografia', label: 'Geografia', levels: ALL_LEVELS },
+  { id: 'historia', label: 'História', levels: ALL_LEVELS },
+  { id: 'ingles', label: 'Inglês', levels: ALL_LEVELS },
+  { id: 'portugues', label: 'Língua Portuguesa', levels: ALL_LEVELS },
+  { id: 'matematica', label: 'Matemática', levels: ALL_LEVELS },
+  { id: 'quimica', label: 'Química', levels: MEDIO_LEVELS },
+  { id: 'sociologia', label: 'Sociologia', levels: MEDIO_LEVELS },
+];
+
+export const getMateriasForLevel = (level: SchoolLevel) =>
+  MATERIAS.filter((m) => m.levels.includes(level));
+
 export const DIFFICULTY_TIME_LIMITS: Record<Difficulty, number> = {
   facil: 30,
   medio: 20,

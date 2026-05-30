@@ -72,11 +72,30 @@ function validateQuestions(items: unknown[]): Question[] {
   return valid;
 }
 
-export async function extractQuestionsFromText(text: string): Promise<Question[]> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+export interface GenerationContext {
+  schoolLevel?: string;
+  materia?: string;
+  subjectFocus?: string;
+}
 
-  const prompt = `
-    Extraia perguntas e respostas do texto a seguir e formate-as como um array de objetos JSON.
+function buildContextHeader(context?: GenerationContext): string {
+  if (!context) return '';
+  const parts: string[] = [];
+  if (context.schoolLevel) {
+    parts.push(`Você está preparando perguntas para alunos do nível: **${context.schoolLevel}**.`);
+  }
+  if (context.materia) {
+    parts.push(`Matéria (componente curricular): **${context.materia}**.`);
+  }
+  if (context.subjectFocus) {
+    parts.push(`Foque exclusivamente neste assunto: **${context.subjectFocus}**.`);
+  }
+  if (parts.length === 0) return '';
+  parts.push('Adapte a linguagem, o vocabulário e a profundidade ao nível indicado.');
+  return parts.join(' ') + '\n';
+}
+
+const QUESTION_SCHEMA_INSTRUCTIONS = `
     Cada objeto deve ter as seguintes propriedades:
       - "question": o enunciado.
       - "options": um array de 4 strings.
@@ -85,6 +104,18 @@ export async function extractQuestionsFromText(text: string): Promise<Question[]
         Use "facil" para perguntas de conhecimento básico, "medio" para perguntas de conhecimento intermediário
         e "dificil" para perguntas que exigem domínio aprofundado ou raciocínio mais complexo.
     Distribua as dificuldades de forma equilibrada quando possível.
+`;
+
+export async function extractQuestionsFromText(
+  text: string,
+  context?: GenerationContext,
+): Promise<Question[]> {
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+  const prompt = `
+    ${buildContextHeader(context)}
+    Extraia perguntas e respostas do texto a seguir e formate-as como um array de objetos JSON.
+    ${QUESTION_SCHEMA_INSTRUCTIONS}
     O texto é: "${text}"
   `;
 
@@ -98,19 +129,17 @@ export async function extractQuestionsFromText(text: string): Promise<Question[]
   }
 }
 
-export async function extractQuestionsFromImage(base64Image: string, mimeType: string): Promise<Question[]> {
+export async function extractQuestionsFromImage(
+  base64Image: string,
+  mimeType: string,
+  context?: GenerationContext,
+): Promise<Question[]> {
   const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const prompt = `
+    ${buildContextHeader(context)}
     Extraia perguntas e respostas da imagem a seguir e formate-as como um array de objetos JSON.
-    Cada objeto deve ter as seguintes propriedades:
-      - "question": o enunciado.
-      - "options": um array de 4 strings.
-      - "answer": uma das opções (texto exato).
-      - "difficulty": nível de dificuldade da pergunta, exatamente um destes valores: "facil", "medio" ou "dificil".
-        Use "facil" para perguntas de conhecimento básico, "medio" para perguntas de conhecimento intermediário
-        e "dificil" para perguntas que exigem domínio aprofundado ou raciocínio mais complexo.
-    Distribua as dificuldades de forma equilibrada quando possível.
+    ${QUESTION_SCHEMA_INSTRUCTIONS}
   `;
 
   const imagePart = {
@@ -126,6 +155,42 @@ export async function extractQuestionsFromImage(base64Image: string, mimeType: s
     return validateQuestions(parseJsonArray(response.text()));
   } catch (error) {
     console.error('Erro ao extrair perguntas da imagem:', error);
+    return [];
+  }
+}
+
+export async function generateQuestionsFromTopic(
+  context: GenerationContext,
+  count = 10,
+): Promise<Question[]> {
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+  const focus = context.subjectFocus?.trim();
+  const materia = context.materia?.trim();
+  if (!focus && !materia) return [];
+
+  const topicDescription = focus
+    ? `assunto: **${focus}**${materia ? ` (matéria: **${materia}**)` : ''}`
+    : `matéria: **${materia}**`;
+
+  const levelLine = context.schoolLevel
+    ? `Nível escolar do aluno: **${context.schoolLevel}**. Adapte a linguagem, vocabulário e profundidade ao nível.`
+    : '';
+
+  const prompt = `
+    Você é um professor brasileiro criando um quiz de estudo.
+    Gere exatamente ${count} perguntas de múltipla escolha sobre o ${topicDescription}.
+    ${levelLine}
+    Retorne um array JSON puro (sem comentários, sem texto fora do array).
+    ${QUESTION_SCHEMA_INSTRUCTIONS}
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return validateQuestions(parseJsonArray(response.text()));
+  } catch (error) {
+    console.error('Erro ao gerar perguntas por assunto:', error);
     return [];
   }
 }

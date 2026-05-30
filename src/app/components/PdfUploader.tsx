@@ -3,9 +3,22 @@
 
 import React, { useState } from 'react';
 import { pdfjs } from 'react-pdf';
-import { TextItem } from 'pdfjs-dist/types/src/display/api'; // Import TextItem
-import { extractQuestionsFromText, generateTitleFromText, extractQuestionsFromImage } from '../game/gemini';
-import { Question } from '../game/types';
+import {
+  extractQuestionsFromText,
+  generateTitleFromText,
+  extractQuestionsFromImage,
+  generateQuestionsFromTopic,
+  GenerationContext,
+} from '../game/gemini';
+import {
+  Question,
+  SchoolLevel,
+  SCHOOL_LEVELS,
+  DEFAULT_SCHOOL_LEVEL,
+  Materia,
+  MATERIAS,
+  getMateriasForLevel,
+} from '../game/types';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -18,7 +31,8 @@ interface PdfUploaderProps {
 
 type ImageProgress = { kind: 'image'; current: number; total: number };
 type PdfProgress = { kind: 'pdf'; current: number; total: number };
-type Progress = ImageProgress | PdfProgress;
+type TopicProgress = { kind: 'topic' };
+type Progress = ImageProgress | PdfProgress | TopicProgress;
 
 const readFileAsDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -36,8 +50,17 @@ const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> =>
     reader.readAsArrayBuffer(file);
   });
 
+const labelForLevel = (id: SchoolLevel): string =>
+  SCHOOL_LEVELS.find((l) => l.id === id)?.label ?? id;
+
+const labelForMateria = (id: Materia | ''): string | undefined =>
+  id ? MATERIAS.find((m) => m.id === id)?.label : undefined;
+
 const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
   const [files, setFiles] = useState<File[]>([]);
+  const [schoolLevel, setSchoolLevel] = useState<SchoolLevel>(DEFAULT_SCHOOL_LEVEL);
+  const [materia, setMateria] = useState<Materia | ''>('');
+  const [subjectFocus, setSubjectFocus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
@@ -49,17 +72,59 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
     }
   };
 
-  const allImages = files.length > 0 && files.every((f) => f.type.startsWith('image/'));
+  const availableMaterias = getMateriasForLevel(schoolLevel);
+  const hasFile = files.length > 0;
+  const trimmedFocus = subjectFocus.trim();
+  const hasFocus = trimmedFocus.length > 0;
+  const hasMateria = materia !== '' && availableMaterias.some((m) => m.id === materia);
+  const allImages = hasFile && files.every((f) => f.type.startsWith('image/'));
   const isSinglePdf = files.length === 1 && files[0].type === 'application/pdf';
+  const canSubmit = hasFile || hasFocus || hasMateria;
+  const materiaLabel = hasMateria ? labelForMateria(materia) : undefined;
 
-  const handleExtractQuestions = async () => {
-    if (files.length === 0) {
+  const handleLevelChange = (nextLevel: SchoolLevel) => {
+    setSchoolLevel(nextLevel);
+    const stillValid = getMateriasForLevel(nextLevel).some((m) => m.id === materia);
+    if (!stillValid && materia !== '') {
+      setMateria('');
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!canSubmit) {
+      setError('Selecione um arquivo, escolha uma matéria ou descreva um assunto para gerar perguntas.');
       return;
     }
 
     setLoading(true);
     setError(null);
     setProgress(null);
+
+    const context: GenerationContext = {
+      schoolLevel: labelForLevel(schoolLevel),
+      materia: materiaLabel,
+      subjectFocus: trimmedFocus || undefined,
+    };
+
+    if (!hasFile && (hasFocus || hasMateria)) {
+      try {
+        setProgress({ kind: 'topic' });
+        const questions = await generateQuestionsFromTopic(context);
+        if (questions.length === 0) {
+          setError('Não consegui gerar perguntas para esse assunto. Tente reformular.');
+          return;
+        }
+        const title = trimmedFocus || materiaLabel;
+        onQuestionsExtracted(questions, title);
+      } catch (e) {
+        setError('Erro ao gerar perguntas pelo assunto.');
+        console.error(e);
+      } finally {
+        setLoading(false);
+        setProgress(null);
+      }
+      return;
+    }
 
     if (allImages) {
       try {
@@ -69,7 +134,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
           setProgress({ kind: 'image', current: i + 1, total: files.length });
           const dataUrl = await readFileAsDataUrl(file);
           const base64Image = dataUrl.split(',')[1];
-          const questions = await extractQuestionsFromImage(base64Image, file.type);
+          const questions = await extractQuestionsFromImage(base64Image, file.type, context);
           allQuestions.push(...questions);
         }
 
@@ -82,7 +147,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
           return;
         }
 
-        const title = files.length === 1 ? files[0].name : undefined;
+        const title = trimmedFocus || materiaLabel || (files.length === 1 ? files[0].name : undefined);
         onQuestionsExtracted(allQuestions, title);
       } catch (e) {
         setError('Erro ao extrair perguntas das imagens.');
@@ -103,7 +168,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
         const allQuestions: Question[] = [];
         const CHUNK_SIZE = 5;
 
-        let extractedTitle: string | undefined;
+        let extractedTitle: string | undefined = trimmedFocus || materiaLabel;
 
         for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum += CHUNK_SIZE) {
           let textChunk = '';
@@ -113,19 +178,16 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
           for (let i = pageNum; i <= endPage; i++) {
             const page = await pdfDoc.getPage(i);
             const content = await page.getTextContent();
-            textChunk += content.items.map((item) => {
-              if ('str' in item) { // Check if 'str' property exists
-                return item.str;
-              }
-              return '';
-            }).join(' ');
+            textChunk += content.items
+              .map((item) => ('str' in item ? item.str : ''))
+              .join(' ');
           }
 
           if (textChunk.trim().length > 0) {
             if (extractedTitle === undefined) {
               extractedTitle = await generateTitleFromText(textChunk);
             }
-            const questions = await extractQuestionsFromText(textChunk);
+            const questions = await extractQuestionsFromText(textChunk, context);
             allQuestions.push(...questions);
           }
         }
@@ -151,7 +213,7 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
 
   const fileLabel =
     files.length === 0
-      ? 'Escolher PDF ou imagens'
+      ? 'Anexar PDF ou imagens (opcional)'
       : files.length === 1
         ? files[0].name
         : `${files.length} imagens selecionadas`;
@@ -161,11 +223,75 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
     if (progress.kind === 'image') {
       return `Imagem ${progress.current} de ${progress.total}…`;
     }
-    return `Página ${progress.current} de ${progress.total}…`;
+    if (progress.kind === 'pdf') {
+      return `Página ${progress.current} de ${progress.total}…`;
+    }
+    return 'Gerando perguntas…';
   })();
 
   return (
     <div className="pdf-uploader">
+      <div className="custom-form-field">
+        <label className="custom-form-label" htmlFor="custom-school-level">
+          Nível escolar
+        </label>
+        <select
+          id="custom-school-level"
+          className="custom-form-select"
+          value={schoolLevel}
+          onChange={(e) => handleLevelChange(e.target.value as SchoolLevel)}
+          disabled={loading}
+        >
+          {SCHOOL_LEVELS.map((level) => (
+            <option key={level.id} value={level.id}>
+              {level.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="custom-form-field">
+        <label className="custom-form-label" htmlFor="custom-materia">
+          Matéria
+        </label>
+        <select
+          id="custom-materia"
+          className="custom-form-select"
+          value={materia}
+          onChange={(e) => {
+            setMateria(e.target.value as Materia | '');
+            if (error) setError(null);
+          }}
+          disabled={loading}
+        >
+          <option value="">Selecione…</option>
+          {availableMaterias.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="custom-form-field">
+        <label className="custom-form-label" htmlFor="custom-subject-focus">
+          Assunto a estudar (opcional)
+        </label>
+        <input
+          id="custom-subject-focus"
+          type="text"
+          className="custom-form-input"
+          placeholder="Ex.: Equações do 2º grau, Revolução Francesa…"
+          value={subjectFocus}
+          onChange={(e) => {
+            setSubjectFocus(e.target.value);
+            if (error) setError(null);
+          }}
+          disabled={loading}
+          maxLength={140}
+        />
+      </div>
+
       <label className="file-picker">
         <input
           type="file"
@@ -180,16 +306,16 @@ const PdfUploader = ({ onQuestionsExtracted }: PdfUploaderProps) => {
           {fileLabel}
         </span>
       </label>
+
       <button
-        onClick={handleExtractQuestions}
-        disabled={files.length === 0 || loading}
+        onClick={handleGenerate}
+        disabled={!canSubmit || loading}
         className="extract-button"
       >
-        {loading
-          ? progressLabel ?? 'Extraindo…'
-          : 'Extrair Perguntas'}
+        {loading ? progressLabel ?? 'Gerando…' : 'Gerar Perguntas'}
       </button>
-      {loading && progress && (
+
+      {loading && progress && progress.kind !== 'topic' && (
         <div className="upload-progress" aria-hidden>
           <div
             className="upload-progress-fill"
