@@ -1335,6 +1335,12 @@ main.game-container {
   opacity: 0.7;
 }
 
+.custom-form-textarea {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.4;
+}
+
 .extract-divider {
   display: flex;
   align-items: center;

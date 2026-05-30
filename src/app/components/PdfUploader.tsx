@@ -320,10 +320,9 @@ const PdfUploader = ({
         <label className="custom-form-label" htmlFor="custom-subject-focus">
           Assunto a estudar (opcional)
         </label>
-        <input
+        <textarea
           id="custom-subject-focus"
-          type="text"
-          className="custom-form-input"
+          className="custom-form-input custom-form-textarea"
           placeholder="Ex.: Equações do 2º grau, Revolução Francesa…"
           value={subjectFocus}
           onChange={(e) => {
@@ -331,7 +330,8 @@ const PdfUploader = ({
             if (error) setError(null);
           }}
           disabled={loading}
-          maxLength={140}
+          maxLength={300}
+          rows={3}
         />
       </div>
 
